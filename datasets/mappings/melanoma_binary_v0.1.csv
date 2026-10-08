@@ -1,0 +1,27 @@
+dataset,original_label,target_name,target,include,reason
+Derm7pt,basal cell carcinoma,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,blue nevus,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,clark nevus,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,combined nevus,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,congenital nevus,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,dermal nevus,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,dermatofibroma,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,lentigo,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,melanoma,melanoma,1,true,Melanoma diagnosis for the Paper 1 target.
+Derm7pt,melanoma (0.76 to 1.5 mm),melanoma,1,true,Melanoma diagnosis for the Paper 1 target.
+Derm7pt,melanoma (in situ),melanoma,1,true,Melanoma diagnosis for the Paper 1 target.
+Derm7pt,melanoma (less than 0.76 mm),melanoma,1,true,Melanoma diagnosis for the Paper 1 target.
+Derm7pt,melanoma (more than 1.5 mm),melanoma,1,true,Melanoma diagnosis for the Paper 1 target.
+Derm7pt,melanoma metastasis,melanoma,1,true,Melanoma diagnosis for the Paper 1 target.
+Derm7pt,melanosis,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,miscellaneous,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,recurrent nevus,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,reed or spitz nevus,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,seborrheic keratosis,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+Derm7pt,vascular lesion,non-melanoma,0,true,Non-melanoma diagnosis for the Paper 1 target.
+PAD-UFES-20,ACK,non-melanoma,0,true,Actinic keratosis is non-melanoma for the Paper 1 target.
+PAD-UFES-20,BCC,non-melanoma,0,true,Basal cell carcinoma is malignant but non-melanoma.
+PAD-UFES-20,MEL,melanoma,1,true,Melanoma diagnosis for the Paper 1 target.
+PAD-UFES-20,NEV,non-melanoma,0,true,Nevus is non-melanoma for the Paper 1 target.
+PAD-UFES-20,SCC,non-melanoma,0,true,Squamous cell carcinoma is malignant but non-melanoma.
+PAD-UFES-20,SEK,non-melanoma,0,true,Seborrheic keratosis is non-melanoma for the Paper 1 target.
