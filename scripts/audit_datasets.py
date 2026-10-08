@@ -20,6 +20,38 @@ MAPPING_FIELDS = (
     "reason",
 )
 
+DERM7PT_FIELDS = (
+    "case_num",
+    "diagnosis",
+    "seven_point_score",
+    "pigment_network",
+    "streaks",
+    "pigmentation",
+    "regression_structures",
+    "dots_and_globules",
+    "blue_whitish_veil",
+    "vascular_structures",
+    "level_of_diagnostic_difficulty",
+    "elevation",
+    "location",
+    "sex",
+    "management",
+    "clinic",
+    "derm",
+    "case_id",
+    "notes",
+)
+
+DERM7PT_CONCEPTS = (
+    "pigment_network",
+    "streaks",
+    "pigmentation",
+    "regression_structures",
+    "dots_and_globules",
+    "blue_whitish_veil",
+    "vascular_structures",
+)
+
 
 class AuditError(RuntimeError):
     """Raised when an audit input violates a required data contract."""
@@ -164,6 +196,129 @@ def binary_distribution(
         "melanoma_prevalence": (
             melanoma_count / included_count if included_count else 0.0
         ),
+    }
+
+
+def validate_official_splits(meta_dir: Path, metadata_rows: int) -> dict[str, Any]:
+    """Read and validate the three official Derm7pt split files."""
+
+    splits: dict[str, list[int]] = {}
+    for split in ("train", "valid", "test"):
+        rows = _read_csv_rows(meta_dir / f"{split}_indexes.csv", ("indexes",))
+        try:
+            splits[split] = [int(row["indexes"]) for row in rows]
+        except ValueError as exc:
+            raise AuditError(f"Non-integer index in {split} split") from exc
+
+    for split, indexes in splits.items():
+        if len(indexes) != len(set(indexes)):
+            raise AuditError(f"Official split contains duplicate indexes: {split}")
+        invalid = [index for index in indexes if not 0 <= index < metadata_rows]
+        if invalid:
+            raise AuditError(f"Official split contains out-of-range indexes: {split}")
+
+    split_names = tuple(splits)
+    for position, left_name in enumerate(split_names):
+        for right_name in split_names[position + 1 :]:
+            if set(splits[left_name]) & set(splits[right_name]):
+                raise AuditError(
+                    f"Official splits overlap: {left_name} and {right_name}"
+                )
+
+    covered = set().union(*(set(indexes) for indexes in splits.values()))
+    if covered != set(range(metadata_rows)):
+        raise AuditError("Official splits do not cover all metadata rows exactly")
+
+    return {
+        "sizes": {name: len(indexes) for name, indexes in splits.items()},
+        "unique_within_splits": True,
+        "pairwise_disjoint": True,
+        "indexes_in_range": True,
+        "complete_coverage": True,
+        "valid": True,
+    }
+
+
+def _distribution(values: Sequence[str]) -> list[dict[str, Any]]:
+    counts = Counter(values)
+    total = len(values)
+    return [
+        {
+            "value": value,
+            "count": counts[value],
+            "fraction": counts[value] / total if total else 0.0,
+        }
+        for value in sorted(counts)
+    ]
+
+
+def audit_derm7pt(
+    dataset_dir: Path,
+    mapping: Mapping[tuple[str, str], LabelMapping],
+) -> dict[str, Any]:
+    """Audit an extracted Derm7pt release using aggregate statistics only."""
+
+    rows = _read_csv_rows(dataset_dir / "meta/meta.csv", DERM7PT_FIELDS)
+    images_dir = dataset_dir / "images"
+    if not images_dir.is_dir():
+        raise AuditError(f"Required image directory not found: {images_dir}")
+
+    clinical_references = [row["clinic"] for row in rows]
+    dermoscopy_references = [row["derm"] for row in rows]
+    references = clinical_references + dermoscopy_references
+    reference_counts = Counter(references)
+    extracted = {
+        path.relative_to(images_dir).as_posix()
+        for path in images_dir.rglob("*")
+        if path.is_file()
+    }
+    referenced = set(references)
+    missing_references = referenced - extracted
+    unreferenced_images = extracted - referenced
+    if missing_references or unreferenced_images:
+        raise AuditError(
+            "Image inventory mismatch for Derm7pt: "
+            f"missing={len(missing_references)}, "
+            f"unreferenced={len(unreferenced_images)}"
+        )
+
+    missingness = [
+        {
+            "column": column,
+            "missing_count": sum(not row[column] for row in rows),
+            "missing_fraction": (
+                sum(not row[column] for row in rows) / len(rows) if rows else 0.0
+            ),
+        }
+        for column in DERM7PT_FIELDS
+    ]
+    concepts = {
+        concept: _distribution([row[concept] for row in rows])
+        for concept in DERM7PT_CONCEPTS
+    }
+
+    return {
+        "dataset": "Derm7pt",
+        "metadata_rows": len(rows),
+        "binary": binary_distribution(
+            "Derm7pt", rows, "diagnosis", mapping
+        ),
+        "images": {
+            "clinical_references": len(clinical_references),
+            "dermoscopy_references": len(dermoscopy_references),
+            "total_references": len(references),
+            "unique_referenced_images": len(referenced),
+            "extracted_images": len(extracted),
+            "duplicate_reference_excess": len(references) - len(referenced),
+            "duplicate_referenced_paths": sum(
+                count > 1 for count in reference_counts.values()
+            ),
+            "missing_references": len(missing_references),
+            "unreferenced_images": len(unreferenced_images),
+        },
+        "missingness": missingness,
+        "concepts": concepts,
+        "splits": validate_official_splits(dataset_dir / "meta", len(rows)),
     }
 
 
