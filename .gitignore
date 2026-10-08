@@ -1,0 +1,35 @@
+# Datasets and sensitive data
+data/
+data_local/
+datasets/raw/
+datasets/interim/
+datasets/processed/
+*.zip
+*.tar
+*.tar.gz
+
+# Model weights and large artifacts
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Local training artifacts
+outputs/
+runs/
+wandb/
+experiments/*/logs/
+experiments/*/results/
+experiments/*/figures/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
