@@ -1,0 +1,877 @@
+{
+  "baseline_readiness": "READY",
+  "derm7pt": {
+    "binary": {
+      "distribution": [
+        {
+          "count": 42,
+          "diagnosis": "basal cell carcinoma",
+          "fraction": 0.04154302670623145,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 28,
+          "diagnosis": "blue nevus",
+          "fraction": 0.027695351137487636,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 399,
+          "diagnosis": "clark nevus",
+          "fraction": 0.39465875370919884,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 13,
+          "diagnosis": "combined nevus",
+          "fraction": 0.012858555885262116,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 17,
+          "diagnosis": "congenital nevus",
+          "fraction": 0.016815034619188922,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 33,
+          "diagnosis": "dermal nevus",
+          "fraction": 0.032640949554896145,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 20,
+          "diagnosis": "dermatofibroma",
+          "fraction": 0.019782393669634024,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 24,
+          "diagnosis": "lentigo",
+          "fraction": 0.02373887240356083,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 1,
+          "diagnosis": "melanoma",
+          "fraction": 0.0009891196834817012,
+          "include": true,
+          "target": 1,
+          "target_name": "melanoma"
+        },
+        {
+          "count": 53,
+          "diagnosis": "melanoma (0.76 to 1.5 mm)",
+          "fraction": 0.05242334322453017,
+          "include": true,
+          "target": 1,
+          "target_name": "melanoma"
+        },
+        {
+          "count": 64,
+          "diagnosis": "melanoma (in situ)",
+          "fraction": 0.06330365974282888,
+          "include": true,
+          "target": 1,
+          "target_name": "melanoma"
+        },
+        {
+          "count": 102,
+          "diagnosis": "melanoma (less than 0.76 mm)",
+          "fraction": 0.10089020771513353,
+          "include": true,
+          "target": 1,
+          "target_name": "melanoma"
+        },
+        {
+          "count": 28,
+          "diagnosis": "melanoma (more than 1.5 mm)",
+          "fraction": 0.027695351137487636,
+          "include": true,
+          "target": 1,
+          "target_name": "melanoma"
+        },
+        {
+          "count": 4,
+          "diagnosis": "melanoma metastasis",
+          "fraction": 0.003956478733926805,
+          "include": true,
+          "target": 1,
+          "target_name": "melanoma"
+        },
+        {
+          "count": 16,
+          "diagnosis": "melanosis",
+          "fraction": 0.01582591493570722,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 8,
+          "diagnosis": "miscellaneous",
+          "fraction": 0.00791295746785361,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 6,
+          "diagnosis": "recurrent nevus",
+          "fraction": 0.005934718100890208,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 79,
+          "diagnosis": "reed or spitz nevus",
+          "fraction": 0.0781404549950544,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 45,
+          "diagnosis": "seborrheic keratosis",
+          "fraction": 0.04451038575667656,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 29,
+          "diagnosis": "vascular lesion",
+          "fraction": 0.028684470820969338,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        }
+      ],
+      "excluded_count": 0,
+      "included_count": 1011,
+      "melanoma_count": 252,
+      "melanoma_prevalence": 0.24925816023738873,
+      "non_melanoma_count": 759
+    },
+    "concepts": {
+      "blue_whitish_veil": [
+        {
+          "count": 816,
+          "fraction": 0.8071216617210683,
+          "value": "absent"
+        },
+        {
+          "count": 195,
+          "fraction": 0.19287833827893175,
+          "value": "present"
+        }
+      ],
+      "dots_and_globules": [
+        {
+          "count": 229,
+          "fraction": 0.2265084075173096,
+          "value": "absent"
+        },
+        {
+          "count": 448,
+          "fraction": 0.4431256181998022,
+          "value": "irregular"
+        },
+        {
+          "count": 334,
+          "fraction": 0.3303659742828882,
+          "value": "regular"
+        }
+      ],
+      "pigment_network": [
+        {
+          "count": 400,
+          "fraction": 0.39564787339268054,
+          "value": "absent"
+        },
+        {
+          "count": 230,
+          "fraction": 0.2274975272007913,
+          "value": "atypical"
+        },
+        {
+          "count": 381,
+          "fraction": 0.3768545994065282,
+          "value": "typical"
+        }
+      ],
+      "pigmentation": [
+        {
+          "count": 588,
+          "fraction": 0.5816023738872403,
+          "value": "absent"
+        },
+        {
+          "count": 265,
+          "fraction": 0.26211671612265086,
+          "value": "diffuse irregular"
+        },
+        {
+          "count": 115,
+          "fraction": 0.11374876360039565,
+          "value": "diffuse regular"
+        },
+        {
+          "count": 40,
+          "fraction": 0.03956478733926805,
+          "value": "localized irregular"
+        },
+        {
+          "count": 3,
+          "fraction": 0.002967359050445104,
+          "value": "localized regular"
+        }
+      ],
+      "regression_structures": [
+        {
+          "count": 758,
+          "fraction": 0.7497527200791295,
+          "value": "absent"
+        },
+        {
+          "count": 116,
+          "fraction": 0.11473788328387735,
+          "value": "blue areas"
+        },
+        {
+          "count": 99,
+          "fraction": 0.09792284866468842,
+          "value": "combinations"
+        },
+        {
+          "count": 38,
+          "fraction": 0.03758654797230465,
+          "value": "white areas"
+        }
+      ],
+      "streaks": [
+        {
+          "count": 653,
+          "fraction": 0.645895153313551,
+          "value": "absent"
+        },
+        {
+          "count": 251,
+          "fraction": 0.24826904055390703,
+          "value": "irregular"
+        },
+        {
+          "count": 107,
+          "fraction": 0.10583580613254204,
+          "value": "regular"
+        }
+      ],
+      "vascular_structures": [
+        {
+          "count": 823,
+          "fraction": 0.8140454995054401,
+          "value": "absent"
+        },
+        {
+          "count": 31,
+          "fraction": 0.03066271018793274,
+          "value": "arborizing"
+        },
+        {
+          "count": 23,
+          "fraction": 0.02274975272007913,
+          "value": "comma"
+        },
+        {
+          "count": 53,
+          "fraction": 0.05242334322453017,
+          "value": "dotted"
+        },
+        {
+          "count": 15,
+          "fraction": 0.01483679525222552,
+          "value": "hairpin"
+        },
+        {
+          "count": 18,
+          "fraction": 0.017804154302670624,
+          "value": "linear irregular"
+        },
+        {
+          "count": 46,
+          "fraction": 0.04549950544015826,
+          "value": "within regression"
+        },
+        {
+          "count": 2,
+          "fraction": 0.0019782393669634025,
+          "value": "wreath"
+        }
+      ]
+    },
+    "dataset": "Derm7pt",
+    "images": {
+      "clinical_references": 1011,
+      "dermoscopy_references": 1011,
+      "duplicate_reference_excess": 9,
+      "duplicate_referenced_paths": 9,
+      "extracted_images": 2013,
+      "missing_references": 0,
+      "total_references": 2022,
+      "unique_referenced_images": 2013,
+      "unreferenced_images": 0
+    },
+    "metadata_rows": 1011,
+    "missingness": [
+      {
+        "column": "case_num",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "diagnosis",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "seven_point_score",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "pigment_network",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "streaks",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "pigmentation",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "regression_structures",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "dots_and_globules",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "blue_whitish_veil",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "vascular_structures",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "level_of_diagnostic_difficulty",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "elevation",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "location",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "sex",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "management",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "clinic",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "derm",
+        "missing_count": 0,
+        "missing_fraction": 0.0
+      },
+      {
+        "column": "case_id",
+        "missing_count": 984,
+        "missing_fraction": 0.973293768545994
+      },
+      {
+        "column": "notes",
+        "missing_count": 1002,
+        "missing_fraction": 0.9910979228486647
+      }
+    ],
+    "splits": {
+      "complete_coverage": true,
+      "indexes_in_range": true,
+      "pairwise_disjoint": true,
+      "sizes": {
+        "test": 395,
+        "train": 413,
+        "valid": 203
+      },
+      "unique_within_splits": true,
+      "valid": true
+    }
+  },
+  "inputs": {
+    "derm7pt": "raw/derm7pt/release_v0/release_v0",
+    "pad_ufes20": "raw/pad_ufes20"
+  },
+  "pad_ufes20": {
+    "binary": {
+      "distribution": [
+        {
+          "count": 730,
+          "diagnosis": "ACK",
+          "fraction": 0.31766753698868583,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 845,
+          "diagnosis": "BCC",
+          "fraction": 0.3677110530896432,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 52,
+          "diagnosis": "MEL",
+          "fraction": 0.022628372497824196,
+          "include": true,
+          "target": 1,
+          "target_name": "melanoma"
+        },
+        {
+          "count": 244,
+          "diagnosis": "NEV",
+          "fraction": 0.1061792863359443,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 192,
+          "diagnosis": "SCC",
+          "fraction": 0.0835509138381201,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        },
+        {
+          "count": 235,
+          "diagnosis": "SEK",
+          "fraction": 0.10226283724978243,
+          "include": true,
+          "target": 0,
+          "target_name": "non-melanoma"
+        }
+      ],
+      "excluded_count": 0,
+      "included_count": 2298,
+      "melanoma_count": 52,
+      "melanoma_prevalence": 0.022628372497824196,
+      "non_melanoma_count": 2246
+    },
+    "dataset": "PAD-UFES-20",
+    "images": {
+      "duplicate_extracted_filename_excess": 0,
+      "duplicate_image_id_excess": 0,
+      "extracted_images": 2298,
+      "metadata_image_match": true,
+      "metadata_references": 2298,
+      "missing_images": 0,
+      "unique_image_ids": 2298,
+      "unreferenced_images": 0
+    },
+    "lesion_multiplicity": {
+      "entities_with_multiple_images": 512,
+      "image_count_distribution": [
+        {
+          "entity_count": 1129,
+          "images_per_entity": 1
+        },
+        {
+          "entity_count": 396,
+          "images_per_entity": 2
+        },
+        {
+          "entity_count": 95,
+          "images_per_entity": 3
+        },
+        {
+          "entity_count": 17,
+          "images_per_entity": 4
+        },
+        {
+          "entity_count": 2,
+          "images_per_entity": 5
+        },
+        {
+          "entity_count": 1,
+          "images_per_entity": 6
+        },
+        {
+          "entity_count": 1,
+          "images_per_entity": 8
+        }
+      ],
+      "max_images_per_entity": 8,
+      "unique_entities": 1641
+    },
+    "metadata_rows": 2298,
+    "missingness": [
+      {
+        "column": "patient_id",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "lesion_id",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "smoke",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "drink",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "background_father",
+        "missing_count": 818,
+        "missing_fraction": 0.35596170583115755,
+        "structural_group": ""
+      },
+      {
+        "column": "background_mother",
+        "missing_count": 822,
+        "missing_fraction": 0.3577023498694517,
+        "structural_group": ""
+      },
+      {
+        "column": "age",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "pesticide",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "gender",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "skin_cancer_history",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "cancer_history",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "has_piped_water",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "has_sewage_system",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "fitspatrick",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "region",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "diameter_1",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "diameter_2",
+        "missing_count": 804,
+        "missing_fraction": 0.34986945169712796,
+        "structural_group": "missing_set_001"
+      },
+      {
+        "column": "diagnostic",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "itch",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "grew",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "hurt",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "changed",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "bleed",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "elevation",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "img_id",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      },
+      {
+        "column": "biopsed",
+        "missing_count": 0,
+        "missing_fraction": 0.0,
+        "structural_group": ""
+      }
+    ],
+    "patient_multiplicity": {
+      "entities_with_multiple_images": 544,
+      "image_count_distribution": [
+        {
+          "entity_count": 829,
+          "images_per_entity": 1
+        },
+        {
+          "entity_count": 328,
+          "images_per_entity": 2
+        },
+        {
+          "entity_count": 132,
+          "images_per_entity": 3
+        },
+        {
+          "entity_count": 42,
+          "images_per_entity": 4
+        },
+        {
+          "entity_count": 21,
+          "images_per_entity": 5
+        },
+        {
+          "entity_count": 12,
+          "images_per_entity": 6
+        },
+        {
+          "entity_count": 6,
+          "images_per_entity": 7
+        },
+        {
+          "entity_count": 3,
+          "images_per_entity": 10
+        }
+      ],
+      "max_images_per_entity": 10,
+      "unique_entities": 1373
+    },
+    "structured_missingness": {
+      "patterns": [
+        {
+          "biopsed_counts": {
+            "False": 132,
+            "True": 1342
+          },
+          "diagnosis_counts": {
+            "ACK": 273,
+            "BCC": 845,
+            "MEL": 52,
+            "NEV": 72,
+            "SCC": 192,
+            "SEK": 40
+          },
+          "missing_columns": [],
+          "row_count": 1474
+        },
+        {
+          "biopsed_counts": {
+            "False": 2
+          },
+          "diagnosis_counts": {
+            "ACK": 2
+          },
+          "missing_columns": [
+            "background_father"
+          ],
+          "row_count": 2
+        },
+        {
+          "biopsed_counts": {
+            "False": 6
+          },
+          "diagnosis_counts": {
+            "ACK": 5,
+            "NEV": 1
+          },
+          "missing_columns": [
+            "background_mother"
+          ],
+          "row_count": 6
+        },
+        {
+          "biopsed_counts": {
+            "False": 12
+          },
+          "diagnosis_counts": {
+            "ACK": 3,
+            "NEV": 2,
+            "SEK": 7
+          },
+          "missing_columns": [
+            "background_father",
+            "background_mother"
+          ],
+          "row_count": 12
+        },
+        {
+          "biopsed_counts": {
+            "False": 804
+          },
+          "diagnosis_counts": {
+            "ACK": 447,
+            "NEV": 169,
+            "SEK": 188
+          },
+          "missing_columns": [
+            "smoke",
+            "drink",
+            "background_father",
+            "background_mother",
+            "pesticide",
+            "gender",
+            "skin_cancer_history",
+            "cancer_history",
+            "has_piped_water",
+            "has_sewage_system",
+            "fitspatrick",
+            "diameter_1",
+            "diameter_2"
+          ],
+          "row_count": 804
+        }
+      ],
+      "shared_groups": [
+        {
+          "columns": [
+            "smoke",
+            "drink",
+            "pesticide",
+            "gender",
+            "skin_cancer_history",
+            "cancer_history",
+            "has_piped_water",
+            "has_sewage_system",
+            "fitspatrick",
+            "diameter_1",
+            "diameter_2"
+          ],
+          "group_id": "missing_set_001",
+          "missing_count": 804
+        }
+      ]
+    },
+    "unique_lesions": 1641,
+    "unique_patients": 1373
+  },
+  "schema_version": "0.1",
+  "unresolved_issues": [
+    "PAD-UFES-20 authoritative source and license details remain TODO in the dataset card."
+  ],
+  "warnings": [
+    "Derm7pt contains repeated image references across its clinical and dermoscopy reference columns; these are duplicates, not missing files.",
+    "PAD-UFES-20 melanoma prevalence is below 5%; ordinary accuracy is not suitable as a primary conclusion.",
+    "PAD-UFES-20 contains patients with multiple images; future splits must be patient-aware to avoid leakage.",
+    "PAD-UFES-20 contains lesions with multiple images; lesion-level grouping must be preserved during evaluation.",
+    "PAD-UFES-20 metadata missingness is structured; automatic complete-case filtering or imputation requires a protocol decision."
+  ]
+}

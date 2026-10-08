@@ -1,0 +1,7 @@
+dataset,diagnosis,count,fraction,target_name,target,include
+PAD-UFES-20,ACK,730,0.31766753698868583,non-melanoma,0,True
+PAD-UFES-20,BCC,845,0.3677110530896432,non-melanoma,0,True
+PAD-UFES-20,MEL,52,0.022628372497824196,melanoma,1,True
+PAD-UFES-20,NEV,244,0.1061792863359443,non-melanoma,0,True
+PAD-UFES-20,SCC,192,0.0835509138381201,non-melanoma,0,True
+PAD-UFES-20,SEK,235,0.10226283724978243,non-melanoma,0,True

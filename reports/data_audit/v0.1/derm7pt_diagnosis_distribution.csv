@@ -1,0 +1,21 @@
+dataset,diagnosis,count,fraction,target_name,target,include
+Derm7pt,basal cell carcinoma,42,0.04154302670623145,non-melanoma,0,True
+Derm7pt,blue nevus,28,0.027695351137487636,non-melanoma,0,True
+Derm7pt,clark nevus,399,0.39465875370919884,non-melanoma,0,True
+Derm7pt,combined nevus,13,0.012858555885262116,non-melanoma,0,True
+Derm7pt,congenital nevus,17,0.016815034619188922,non-melanoma,0,True
+Derm7pt,dermal nevus,33,0.032640949554896145,non-melanoma,0,True
+Derm7pt,dermatofibroma,20,0.019782393669634024,non-melanoma,0,True
+Derm7pt,lentigo,24,0.02373887240356083,non-melanoma,0,True
+Derm7pt,melanoma,1,0.0009891196834817012,melanoma,1,True
+Derm7pt,melanoma (0.76 to 1.5 mm),53,0.05242334322453017,melanoma,1,True
+Derm7pt,melanoma (in situ),64,0.06330365974282888,melanoma,1,True
+Derm7pt,melanoma (less than 0.76 mm),102,0.10089020771513353,melanoma,1,True
+Derm7pt,melanoma (more than 1.5 mm),28,0.027695351137487636,melanoma,1,True
+Derm7pt,melanoma metastasis,4,0.003956478733926805,melanoma,1,True
+Derm7pt,melanosis,16,0.01582591493570722,non-melanoma,0,True
+Derm7pt,miscellaneous,8,0.00791295746785361,non-melanoma,0,True
+Derm7pt,recurrent nevus,6,0.005934718100890208,non-melanoma,0,True
+Derm7pt,reed or spitz nevus,79,0.0781404549950544,non-melanoma,0,True
+Derm7pt,seborrheic keratosis,45,0.04451038575667656,non-melanoma,0,True
+Derm7pt,vascular lesion,29,0.028684470820969338,non-melanoma,0,True

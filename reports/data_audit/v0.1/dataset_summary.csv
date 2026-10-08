@@ -1,0 +1,3 @@
+dataset,sample_unit,modalities,metadata_rows,image_count,unique_patients,unique_lesions,melanoma_count,non_melanoma_count,melanoma_prevalence
+Derm7pt,case,clinical;dermoscopy,1011,2013,,,252,759,0.24925816023738873
+PAD-UFES-20,image row,clinical,2298,2298,1373,1641,52,2246,0.022628372497824196

@@ -1,0 +1,29 @@
+concept,value,count,fraction
+pigment_network,absent,400,0.39564787339268054
+pigment_network,atypical,230,0.2274975272007913
+pigment_network,typical,381,0.3768545994065282
+streaks,absent,653,0.645895153313551
+streaks,irregular,251,0.24826904055390703
+streaks,regular,107,0.10583580613254204
+pigmentation,absent,588,0.5816023738872403
+pigmentation,diffuse irregular,265,0.26211671612265086
+pigmentation,diffuse regular,115,0.11374876360039565
+pigmentation,localized irregular,40,0.03956478733926805
+pigmentation,localized regular,3,0.002967359050445104
+regression_structures,absent,758,0.7497527200791295
+regression_structures,blue areas,116,0.11473788328387735
+regression_structures,combinations,99,0.09792284866468842
+regression_structures,white areas,38,0.03758654797230465
+dots_and_globules,absent,229,0.2265084075173096
+dots_and_globules,irregular,448,0.4431256181998022
+dots_and_globules,regular,334,0.3303659742828882
+blue_whitish_veil,absent,816,0.8071216617210683
+blue_whitish_veil,present,195,0.19287833827893175
+vascular_structures,absent,823,0.8140454995054401
+vascular_structures,arborizing,31,0.03066271018793274
+vascular_structures,comma,23,0.02274975272007913
+vascular_structures,dotted,53,0.05242334322453017
+vascular_structures,hairpin,15,0.01483679525222552
+vascular_structures,linear irregular,18,0.017804154302670624
+vascular_structures,within regression,46,0.04549950544015826
+vascular_structures,wreath,2,0.0019782393669634025
