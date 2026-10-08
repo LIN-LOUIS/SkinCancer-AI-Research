@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import shutil
 import sys
 import tempfile
 from collections import Counter
@@ -82,6 +83,31 @@ PAD_FIELDS = (
     "elevation",
     "img_id",
     "biopsed",
+)
+
+PAD_ENCODED_UNKNOWN_VALUES = frozenset({"UNK"})
+
+REPORT_ARTIFACT_NAMES = frozenset(
+    {
+        "dataset_summary.csv",
+        "derm7pt_diagnosis_distribution.csv",
+        "derm7pt_concept_distribution.csv",
+        "derm7pt_missingness.csv",
+        "pad_diagnosis_distribution.csv",
+        "pad_missingness.csv",
+        "audit_summary.json",
+        "audit_report.md",
+    }
+)
+
+FIGURE_ARTIFACT_NAMES = frozenset(
+    {
+        "01_dataset_overview.png",
+        "02_diagnosis_distribution.png",
+        "03_melanoma_prevalence.png",
+        "04_derm7pt_concept_distribution.png",
+        "05_pad_metadata_missingness.png",
+    }
 )
 
 
@@ -379,10 +405,22 @@ def summarize_structured_missingness(
     """Describe missingness signatures without exposing row identifiers."""
 
     columns = tuple(rows[0]) if rows else PAD_FIELDS
-    missing_sets: dict[str, frozenset[int]] = {
+    blank_sets: dict[str, frozenset[int]] = {
         column: frozenset(
             index for index, row in enumerate(rows) if not row.get(column, "")
         )
+        for column in columns
+    }
+    encoded_unknown_sets: dict[str, frozenset[int]] = {
+        column: frozenset(
+            index
+            for index, row in enumerate(rows)
+            if row.get(column, "").upper() in PAD_ENCODED_UNKNOWN_VALUES
+        )
+        for column in columns
+    }
+    missing_sets = {
+        column: blank_sets[column] | encoded_unknown_sets[column]
         for column in columns
     }
     grouped_columns: dict[frozenset[int], list[str]] = {}
@@ -410,17 +448,40 @@ def summarize_structured_missingness(
         for column in grouped:
             group_by_column[column] = group_id
 
-    pattern_rows: dict[tuple[str, ...], list[Mapping[str, str]]] = {}
+    pattern_rows: dict[
+        tuple[tuple[str, ...], tuple[str, ...]], list[Mapping[str, str]]
+    ] = {}
     for row in rows:
-        signature = tuple(column for column in columns if not row.get(column, ""))
-        pattern_rows.setdefault(signature, []).append(row)
+        blank_signature = tuple(
+            column for column in columns if not row.get(column, "")
+        )
+        encoded_signature = tuple(
+            column
+            for column in columns
+            if row.get(column, "").upper() in PAD_ENCODED_UNKNOWN_VALUES
+        )
+        pattern_rows.setdefault((blank_signature, encoded_signature), []).append(row)
 
     patterns = []
-    for signature in sorted(pattern_rows, key=lambda value: (len(value), value)):
-        grouped_rows = pattern_rows[signature]
+    for blank_signature, encoded_signature in sorted(
+        pattern_rows,
+        key=lambda value: (
+            len(value[0]) + len(value[1]),
+            value[0] + value[1],
+            value,
+        ),
+    ):
+        grouped_rows = pattern_rows[(blank_signature, encoded_signature)]
+        unavailable = tuple(
+            column
+            for column in columns
+            if column in blank_signature or column in encoded_signature
+        )
         patterns.append(
             {
-                "missing_columns": list(signature),
+                "missing_columns": list(unavailable),
+                "blank_columns": list(blank_signature),
+                "encoded_unknown_columns": list(encoded_signature),
                 "row_count": len(grouped_rows),
                 "diagnosis_counts": dict(
                     sorted(Counter(row["diagnostic"] for row in grouped_rows).items())
@@ -472,9 +533,24 @@ def audit_pad_ufes20(
     missingness = [
         {
             "column": column,
-            "missing_count": sum(not row[column] for row in rows),
+            "blank_count": sum(not row[column] for row in rows),
+            "encoded_unknown_count": sum(
+                row[column].upper() in PAD_ENCODED_UNKNOWN_VALUES for row in rows
+            ),
+            "missing_count": sum(
+                not row[column]
+                or row[column].upper() in PAD_ENCODED_UNKNOWN_VALUES
+                for row in rows
+            ),
             "missing_fraction": (
-                sum(not row[column] for row in rows) / len(rows) if rows else 0.0
+                sum(
+                    not row[column]
+                    or row[column].upper() in PAD_ENCODED_UNKNOWN_VALUES
+                    for row in rows
+                )
+                / len(rows)
+                if rows
+                else 0.0
             ),
             "structural_group": structured["group_by_column"].get(column, ""),
         }
@@ -633,6 +709,8 @@ def write_csv_reports(
             report_dir / "pad_missingness.csv",
             (
                 "column",
+                "blank_count",
+                "encoded_unknown_count",
                 "missing_count",
                 "missing_fraction",
                 "structural_group",
@@ -665,6 +743,12 @@ def build_markdown_report(summary: Mapping[str, Any]) -> str:
         if unresolved
         else "- None that block cohort construction or binary target mapping."
     )
+    readiness_issues = summary.get("readiness_issues", [])
+    readiness_lines = (
+        "\n".join(f"- {issue}" for issue in readiness_issues)
+        if readiness_issues
+        else "- None."
+    )
     shared_groups = pad["structured_missingness"]["shared_groups"]
     structured_lines = (
         "\n".join(
@@ -676,6 +760,13 @@ def build_markdown_report(summary: Mapping[str, Any]) -> str:
         if shared_groups
         else "- No columns share an identical non-empty missing-row set."
     )
+    encoded_unknown_lines = "\n".join(
+        f"- {row['column']}: {row['encoded_unknown_count']} encoded `UNK` values"
+        for row in pad["missingness"]
+        if row["encoded_unknown_count"]
+    )
+    if not encoded_unknown_lines:
+        encoded_unknown_lines = "- No encoded `UNK` values were observed."
     return f"""# Data Audit v0.1
 
 ## Scope and methods
@@ -720,6 +811,11 @@ mechanism or justify automatic imputation.
 
 {structured_lines}
 
+Blank cells and explicit encoded unknowns are reported separately. Total
+missingness used in the CSV and figure is their union.
+
+{encoded_unknown_lines}
+
 ## Warnings
 
 {warning_lines}
@@ -731,6 +827,10 @@ mechanism or justify automatic imputation.
 ## Baseline v0.1 readiness
 
 **{summary['baseline_readiness']}**
+
+Readiness checks:
+
+{readiness_lines}
 
 Readiness covers data inventory, target mapping, and official split integrity.
 It does not remove the need for patient-aware evaluation, class-imbalance
@@ -919,7 +1019,109 @@ def _audit_warnings(derm: Mapping[str, Any], pad: Mapping[str, Any]) -> list[str
             "PAD-UFES-20 metadata missingness is structured; automatic "
             "complete-case filtering or imputation requires a protocol decision."
         )
+    if any(row["encoded_unknown_count"] for row in pad["missingness"]):
+        warnings.append(
+            "PAD-UFES-20 uses explicit UNK values in some metadata fields; the "
+            "audit reports these separately from blank cells and includes both "
+            "in total missingness."
+        )
     return warnings
+
+
+def evaluate_baseline_readiness(
+    derm: Mapping[str, Any], pad: Mapping[str, Any]
+) -> tuple[str, list[str]]:
+    """Evaluate whether the audited cohorts can support Baseline v0.1."""
+
+    issues: list[str] = []
+    for dataset_name, audit in (("Derm7pt", derm), ("PAD-UFES-20", pad)):
+        rows = audit["metadata_rows"]
+        binary = audit["binary"]
+        if rows <= 0:
+            issues.append(f"{dataset_name} cohort is empty.")
+        if binary["excluded_count"]:
+            issues.append(
+                f"{dataset_name} has {binary['excluded_count']} observed rows "
+                "excluded by the binary mapping."
+            )
+        if binary["included_count"] != rows:
+            issues.append(
+                f"{dataset_name} included binary rows do not cover all metadata rows."
+            )
+        if rows > 0 and binary["melanoma_count"] <= 0:
+            issues.append(f"{dataset_name} has no included melanoma examples.")
+        if rows > 0 and binary["non_melanoma_count"] <= 0:
+            issues.append(f"{dataset_name} has no included non-melanoma examples.")
+
+    derm_rows = derm["metadata_rows"]
+    if derm["images"]["clinical_references"] != derm_rows:
+        issues.append("Derm7pt clinical references do not cover every case.")
+    if derm["images"]["dermoscopy_references"] != derm_rows:
+        issues.append("Derm7pt dermoscopy references do not cover every case.")
+    if not derm["splits"]["valid"]:
+        issues.append("Derm7pt official splits failed integrity validation.")
+    if derm["images"]["missing_references"] or derm["images"]["unreferenced_images"]:
+        issues.append("Derm7pt image inventory is not an exact reference match.")
+
+    if not pad["images"]["metadata_image_match"]:
+        issues.append("PAD-UFES-20 image inventory is not an exact metadata match.")
+    if pad["images"]["unique_image_ids"] != pad["metadata_rows"]:
+        issues.append("PAD-UFES-20 does not have one unique image ID per row.")
+
+    return ("READY" if not issues else "BLOCKED", issues)
+
+
+def _validate_artifact_directory(path: Path, expected: frozenset[str]) -> None:
+    actual = {entry.name for entry in path.iterdir() if entry.is_file()}
+    if actual != expected:
+        missing = sorted(expected - actual)
+        unexpected = sorted(actual - expected)
+        raise AuditError(
+            f"Incomplete staged artifacts in {path.name}: "
+            f"missing={missing}, unexpected={unexpected}"
+        )
+    empty = sorted(entry.name for entry in path.iterdir() if entry.stat().st_size == 0)
+    if empty:
+        raise AuditError(f"Empty staged artifacts in {path.name}: {empty}")
+
+
+def _publish_artifact_directories(
+    staged_report_dir: Path,
+    report_dir: Path,
+    staged_figure_dir: Path,
+    figure_dir: Path,
+    repo_root: Path,
+) -> None:
+    """Publish complete report and figure directories with rollback."""
+
+    report_dir.parent.mkdir(parents=True, exist_ok=True)
+    figure_dir.parent.mkdir(parents=True, exist_ok=True)
+    backup_root = Path(
+        tempfile.mkdtemp(prefix=".data-audit-backup-", dir=repo_root)
+    )
+    pairs = (
+        (staged_report_dir, report_dir, backup_root / "report"),
+        (staged_figure_dir, figure_dir, backup_root / "figures"),
+    )
+    published: list[tuple[Path, Path]] = []
+    try:
+        for staged, destination, backup in pairs:
+            if destination.exists():
+                os.replace(destination, backup)
+            os.replace(staged, destination)
+            published.append((destination, backup))
+    except Exception:
+        for destination, backup in reversed(published):
+            if destination.exists():
+                shutil.rmtree(destination)
+            if backup.exists():
+                os.replace(backup, destination)
+        for _, destination, backup in pairs[len(published) :]:
+            if not destination.exists() and backup.exists():
+                os.replace(backup, destination)
+        raise
+    finally:
+        shutil.rmtree(backup_root, ignore_errors=True)
 
 
 def run_audit(data_root: Path, repo_root: Path) -> dict[str, Any]:
@@ -940,6 +1142,7 @@ def run_audit(data_root: Path, repo_root: Path) -> dict[str, Any]:
     mapping = load_mapping(paths.mapping_path)
     derm = audit_derm7pt(paths.derm7pt_dir, mapping)
     pad = audit_pad_ufes20(paths.pad_ufes20_dir, mapping)
+    readiness, readiness_issues = evaluate_baseline_readiness(derm, pad)
     summary: dict[str, Any] = {
         "schema_version": "0.1",
         "inputs": {
@@ -953,16 +1156,32 @@ def run_audit(data_root: Path, repo_root: Path) -> dict[str, Any]:
             "PAD-UFES-20 authoritative source and license details remain TODO "
             "in the dataset card."
         ],
-        "baseline_readiness": "READY",
+        "baseline_readiness": readiness,
+        "readiness_issues": readiness_issues,
     }
 
-    write_csv_reports(summary, paths.report_dir)
-    write_json_summary(summary, paths.report_dir / "audit_summary.json")
-    report_path = paths.report_dir / "audit_report.md"
-    report_path.write_text(
-        build_markdown_report(summary), encoding="utf-8", newline="\n"
-    )
-    render_figures(summary, paths.figure_dir)
+    with tempfile.TemporaryDirectory(
+        prefix=".data-audit-stage-", dir=repo_root
+    ) as staging_name:
+        staging_root = Path(staging_name)
+        staged_report_dir = staging_root / "reports"
+        staged_figure_dir = staging_root / "figures"
+        write_csv_reports(summary, staged_report_dir)
+        write_json_summary(summary, staged_report_dir / "audit_summary.json")
+        report_path = staged_report_dir / "audit_report.md"
+        report_path.write_text(
+            build_markdown_report(summary), encoding="utf-8", newline="\n"
+        )
+        render_figures(summary, staged_figure_dir)
+        _validate_artifact_directory(staged_report_dir, REPORT_ARTIFACT_NAMES)
+        _validate_artifact_directory(staged_figure_dir, FIGURE_ARTIFACT_NAMES)
+        _publish_artifact_directories(
+            staged_report_dir,
+            paths.report_dir,
+            staged_figure_dir,
+            paths.figure_dir,
+            repo_root,
+        )
     return summary
 
 

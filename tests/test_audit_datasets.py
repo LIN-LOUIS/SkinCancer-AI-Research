@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ import sys
 import pytest
 from PIL import Image
 
+import scripts.audit_datasets as audit_module
 from scripts.audit_datasets import (
     AuditError,
     LabelMapping,
@@ -21,6 +23,7 @@ from scripts.audit_datasets import (
     load_mapping,
     render_figures,
     resolve_data_root,
+    run_audit,
     validate_official_splits,
     write_csv_reports,
     write_json_summary,
@@ -494,12 +497,16 @@ def test_audit_pad_reports_matching_multiplicity_and_structured_missingness(
     assert result["structured_missingness"]["patterns"] == [
         {
             "missing_columns": [],
+            "blank_columns": [],
+            "encoded_unknown_columns": [],
             "row_count": 2,
             "diagnosis_counts": {"BCC": 1, "MEL": 1},
             "biopsed_counts": {"True": 2},
         },
         {
             "missing_columns": ["smoke", "drink"],
+            "blank_columns": ["smoke", "drink"],
+            "encoded_unknown_columns": [],
             "row_count": 2,
             "diagnosis_counts": {"ACK": 1, "NEV": 1},
             "biopsed_counts": {"False": 2},
@@ -618,6 +625,45 @@ def test_audit_pad_rejects_unmapped_diagnosis(tmp_path: Path) -> None:
         )
 
 
+def test_pad_missingness_counts_blank_and_encoded_unknown_separately(
+    tmp_path: Path,
+) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+    metadata_path = dataset_dir / "metadata.csv"
+    rows = _read_csv(metadata_path)
+    rows[2]["itch"] = "UNK"
+    rows[3]["grew"] = "UNK"
+    _write_csv(metadata_path, PAD_FIELDS, rows)
+
+    result = audit_pad_ufes20(
+        dataset_dir,
+        load_mapping(
+            Path(__file__).parents[1]
+            / "datasets/mappings/melanoma_binary_v0.1.csv"
+        ),
+    )
+
+    missingness = {row["column"]: row for row in result["missingness"]}
+    assert missingness["smoke"] == {
+        "column": "smoke",
+        "blank_count": 2,
+        "encoded_unknown_count": 0,
+        "missing_count": 2,
+        "missing_fraction": 0.5,
+        "structural_group": "missing_set_001",
+    }
+    assert missingness["itch"]["blank_count"] == 0
+    assert missingness["itch"]["encoded_unknown_count"] == 1
+    assert missingness["itch"]["missing_count"] == 1
+    assert missingness["itch"]["missing_fraction"] == 0.25
+    patterns = result["structured_missingness"]["patterns"]
+    itch_pattern = next(
+        pattern for pattern in patterns if pattern["encoded_unknown_columns"] == ["itch"]
+    )
+    assert itch_pattern["blank_columns"] == ["smoke", "drink"]
+    assert itch_pattern["missing_columns"] == ["smoke", "drink", "itch"]
+
+
 def test_write_outputs_creates_all_eight_report_files(tmp_path: Path) -> None:
     summary = _make_summary(tmp_path / "inputs")
     report_dir = tmp_path / "reports"
@@ -702,6 +748,102 @@ def test_render_figures_creates_five_300_dpi_english_pngs(
             assert dpi is not None
             assert dpi[0] == pytest.approx(300, abs=1)
             assert dpi[1] == pytest.approx(300, abs=1)
+
+
+def test_readiness_blocks_excluded_or_empty_cohorts(tmp_path: Path) -> None:
+    summary = _make_summary(tmp_path / "inputs")
+    excluded_pad = deepcopy(summary["pad_ufes20"])
+    excluded_pad["binary"]["excluded_count"] = 1
+    excluded_pad["binary"]["included_count"] -= 1
+
+    status, issues = audit_module.evaluate_baseline_readiness(
+        summary["derm7pt"], excluded_pad
+    )
+
+    assert status == "BLOCKED"
+    assert any("excluded" in issue.lower() for issue in issues)
+
+    empty_derm = deepcopy(summary["derm7pt"])
+    empty_derm["metadata_rows"] = 0
+    empty_derm["images"]["clinical_references"] = 0
+    empty_derm["images"]["dermoscopy_references"] = 0
+    status, issues = audit_module.evaluate_baseline_readiness(
+        empty_derm, summary["pad_ufes20"]
+    )
+    assert status == "BLOCKED"
+    assert any("empty" in issue.lower() for issue in issues)
+
+
+def test_run_audit_marks_excluded_mapping_blocked(tmp_path: Path) -> None:
+    source_root = Path(__file__).parents[1]
+    repo_root = tmp_path / "repository"
+    mapping_path = repo_root / "datasets/mappings/melanoma_binary_v0.1.csv"
+    mapping_path.parent.mkdir(parents=True)
+    mapping_rows = _read_csv(
+        source_root / "datasets/mappings/melanoma_binary_v0.1.csv"
+    )
+    for row in mapping_rows:
+        if row["dataset"] == "PAD-UFES-20" and row["original_label"] == "MEL":
+            row["include"] = "false"
+    _write_csv(mapping_path, MAPPING_FIELDS, mapping_rows)
+    data_root = tmp_path / "data"
+    _make_derm7pt_fixture(
+        data_root, Path("raw/derm7pt/release_v0/release_v0")
+    )
+    _make_pad_fixture(data_root, Path("raw/pad_ufes20"))
+
+    result = run_audit(data_root, repo_root)
+
+    assert result["baseline_readiness"] == "BLOCKED"
+    assert any("excluded" in issue.lower() for issue in result["readiness_issues"])
+    persisted = json.loads(
+        (repo_root / "reports/data_audit/v0.1/audit_summary.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert persisted["baseline_readiness"] == "BLOCKED"
+
+
+def test_run_audit_preserves_previous_artifacts_when_render_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = Path(__file__).parents[1]
+    repo_root = tmp_path / "repository"
+    mapping_path = repo_root / "datasets/mappings/melanoma_binary_v0.1.csv"
+    mapping_path.parent.mkdir(parents=True)
+    shutil.copy2(
+        source_root / "datasets/mappings/melanoma_binary_v0.1.csv", mapping_path
+    )
+    data_root = tmp_path / "data"
+    _make_derm7pt_fixture(
+        data_root, Path("raw/derm7pt/release_v0/release_v0")
+    )
+    _make_pad_fixture(data_root, Path("raw/pad_ufes20"))
+    report_dir = repo_root / "reports/data_audit/v0.1"
+    figure_dir = repo_root / "experiments/paper1_concept_dg/figures/data_audit"
+    report_dir.mkdir(parents=True)
+    figure_dir.mkdir(parents=True)
+    prior_report = b'{"baseline_readiness":"PRIOR"}\n'
+    prior_figure = b"prior-figure"
+    (report_dir / "audit_summary.json").write_bytes(prior_report)
+    (figure_dir / "01_dataset_overview.png").write_bytes(prior_figure)
+
+    def fail_render(summary: object, output_dir: Path) -> list[Path]:
+        raise OSError("simulated render failure")
+
+    monkeypatch.setattr(audit_module, "render_figures", fail_render)
+
+    with pytest.raises(OSError, match="simulated render failure"):
+        run_audit(data_root, repo_root)
+
+    assert sorted(path.name for path in report_dir.iterdir()) == [
+        "audit_summary.json"
+    ]
+    assert sorted(path.name for path in figure_dir.iterdir()) == [
+        "01_dataset_overview.png"
+    ]
+    assert (report_dir / "audit_summary.json").read_bytes() == prior_report
+    assert (figure_dir / "01_dataset_overview.png").read_bytes() == prior_figure
 
 
 def test_cli_uses_environment_root_and_creates_required_artifacts(

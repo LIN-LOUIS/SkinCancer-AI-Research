@@ -82,6 +82,12 @@ guess these details from filenames or secondary descriptions.
   splitting would risk leakage.
 - Eleven clinical/context fields share a large identical missing-row set in
   the audited copy. Parental-background fields contain additional missingness.
+- Eight fields use explicit `UNK` values in the audited copy. These include
+  `background_father` (95, in addition to 818 blanks), `background_mother`
+  (84, in addition to 822 blanks), `grew` (402), `changed` (396), `hurt`
+  (10), `itch` (6), `bleed` (6), and `elevation` (2). Data Audit v0.1 reports
+  blank and encoded-unknown counts separately and uses their union for total
+  missingness.
 - The shared missingness is associated descriptively with unbiopsied rows in
   the audited copy. This does not prove a causal missingness mechanism or
   justify treating values as missing at random.

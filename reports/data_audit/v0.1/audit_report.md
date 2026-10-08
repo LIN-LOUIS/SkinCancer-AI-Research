@@ -42,6 +42,18 @@ mechanism or justify automatic imputation.
 
 - 804 rows share missingness across: smoke, drink, pesticide, gender, skin_cancer_history, cancer_history, has_piped_water, has_sewage_system, fitspatrick, diameter_1, diameter_2
 
+Blank cells and explicit encoded unknowns are reported separately. Total
+missingness used in the CSV and figure is their union.
+
+- background_father: 95 encoded `UNK` values
+- background_mother: 84 encoded `UNK` values
+- itch: 6 encoded `UNK` values
+- grew: 402 encoded `UNK` values
+- hurt: 10 encoded `UNK` values
+- changed: 396 encoded `UNK` values
+- bleed: 6 encoded `UNK` values
+- elevation: 2 encoded `UNK` values
+
 ## Warnings
 
 - Derm7pt contains repeated image references across its clinical and dermoscopy reference columns; these are duplicates, not missing files.
@@ -49,6 +61,7 @@ mechanism or justify automatic imputation.
 - PAD-UFES-20 contains patients with multiple images; future splits must be patient-aware to avoid leakage.
 - PAD-UFES-20 contains lesions with multiple images; lesion-level grouping must be preserved during evaluation.
 - PAD-UFES-20 metadata missingness is structured; automatic complete-case filtering or imputation requires a protocol decision.
+- PAD-UFES-20 uses explicit UNK values in some metadata fields; the audit reports these separately from blank cells and includes both in total missingness.
 
 ## Unresolved issues
 
@@ -57,6 +70,10 @@ mechanism or justify automatic imputation.
 ## Baseline v0.1 readiness
 
 **READY**
+
+Readiness checks:
+
+- None.
 
 Readiness covers data inventory, target mapping, and official split integrity.
 It does not remove the need for patient-aware evaluation, class-imbalance

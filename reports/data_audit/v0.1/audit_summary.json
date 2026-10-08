@@ -560,157 +560,209 @@
     "metadata_rows": 2298,
     "missingness": [
       {
+        "blank_count": 0,
         "column": "patient_id",
+        "encoded_unknown_count": 0,
         "missing_count": 0,
         "missing_fraction": 0.0,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "lesion_id",
+        "encoded_unknown_count": 0,
         "missing_count": 0,
         "missing_fraction": 0.0,
         "structural_group": ""
       },
       {
+        "blank_count": 804,
         "column": "smoke",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "drink",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 818,
         "column": "background_father",
-        "missing_count": 818,
-        "missing_fraction": 0.35596170583115755,
+        "encoded_unknown_count": 95,
+        "missing_count": 913,
+        "missing_fraction": 0.39730200174064406,
         "structural_group": ""
       },
       {
+        "blank_count": 822,
         "column": "background_mother",
-        "missing_count": 822,
-        "missing_fraction": 0.3577023498694517,
+        "encoded_unknown_count": 84,
+        "missing_count": 906,
+        "missing_fraction": 0.39425587467362927,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "age",
+        "encoded_unknown_count": 0,
         "missing_count": 0,
         "missing_fraction": 0.0,
         "structural_group": ""
       },
       {
+        "blank_count": 804,
         "column": "pesticide",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "gender",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "skin_cancer_history",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "cancer_history",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "has_piped_water",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "has_sewage_system",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "fitspatrick",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 0,
         "column": "region",
+        "encoded_unknown_count": 0,
         "missing_count": 0,
         "missing_fraction": 0.0,
         "structural_group": ""
       },
       {
+        "blank_count": 804,
         "column": "diameter_1",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 804,
         "column": "diameter_2",
+        "encoded_unknown_count": 0,
         "missing_count": 804,
         "missing_fraction": 0.34986945169712796,
         "structural_group": "missing_set_001"
       },
       {
+        "blank_count": 0,
         "column": "diagnostic",
+        "encoded_unknown_count": 0,
         "missing_count": 0,
         "missing_fraction": 0.0,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "itch",
-        "missing_count": 0,
-        "missing_fraction": 0.0,
+        "encoded_unknown_count": 6,
+        "missing_count": 6,
+        "missing_fraction": 0.0026109660574412533,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "grew",
-        "missing_count": 0,
-        "missing_fraction": 0.0,
+        "encoded_unknown_count": 402,
+        "missing_count": 402,
+        "missing_fraction": 0.17493472584856398,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "hurt",
-        "missing_count": 0,
-        "missing_fraction": 0.0,
+        "encoded_unknown_count": 10,
+        "missing_count": 10,
+        "missing_fraction": 0.004351610095735422,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "changed",
-        "missing_count": 0,
-        "missing_fraction": 0.0,
+        "encoded_unknown_count": 396,
+        "missing_count": 396,
+        "missing_fraction": 0.17232375979112272,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "bleed",
-        "missing_count": 0,
-        "missing_fraction": 0.0,
+        "encoded_unknown_count": 6,
+        "missing_count": 6,
+        "missing_fraction": 0.0026109660574412533,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "elevation",
-        "missing_count": 0,
-        "missing_fraction": 0.0,
+        "encoded_unknown_count": 2,
+        "missing_count": 2,
+        "missing_fraction": 0.0008703220191470844,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "img_id",
+        "encoded_unknown_count": 0,
         "missing_count": 0,
         "missing_fraction": 0.0,
         "structural_group": ""
       },
       {
+        "blank_count": 0,
         "column": "biopsed",
+        "encoded_unknown_count": 0,
         "missing_count": 0,
         "missing_fraction": 0.0,
         "structural_group": ""
@@ -760,26 +812,50 @@
         {
           "biopsed_counts": {
             "False": 132,
-            "True": 1342
+            "True": 858
           },
+          "blank_columns": [],
           "diagnosis_counts": {
-            "ACK": 273,
-            "BCC": 845,
-            "MEL": 52,
-            "NEV": 72,
-            "SCC": 192,
-            "SEK": 40
+            "ACK": 242,
+            "BCC": 542,
+            "MEL": 34,
+            "NEV": 32,
+            "SCC": 110,
+            "SEK": 30
           },
+          "encoded_unknown_columns": [],
           "missing_columns": [],
-          "row_count": 1474
+          "row_count": 990
+        },
+        {
+          "biopsed_counts": {
+            "True": 23
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 12,
+            "BCC": 10,
+            "NEV": 1
+          },
+          "encoded_unknown_columns": [
+            "background_father"
+          ],
+          "missing_columns": [
+            "background_father"
+          ],
+          "row_count": 23
         },
         {
           "biopsed_counts": {
             "False": 2
           },
+          "blank_columns": [
+            "background_father"
+          ],
           "diagnosis_counts": {
             "ACK": 2
           },
+          "encoded_unknown_columns": [],
           "missing_columns": [
             "background_father"
           ],
@@ -787,12 +863,34 @@
         },
         {
           "biopsed_counts": {
+            "True": 16
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 5,
+            "BCC": 10,
+            "NEV": 1
+          },
+          "encoded_unknown_columns": [
+            "background_mother"
+          ],
+          "missing_columns": [
+            "background_mother"
+          ],
+          "row_count": 16
+        },
+        {
+          "biopsed_counts": {
             "False": 6
           },
+          "blank_columns": [
+            "background_mother"
+          ],
           "diagnosis_counts": {
             "ACK": 5,
             "NEV": 1
           },
+          "encoded_unknown_columns": [],
           "missing_columns": [
             "background_mother"
           ],
@@ -800,13 +898,90 @@
         },
         {
           "biopsed_counts": {
+            "True": 2
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "MEL": 2
+          },
+          "encoded_unknown_columns": [
+            "changed"
+          ],
+          "missing_columns": [
+            "changed"
+          ],
+          "row_count": 2
+        },
+        {
+          "biopsed_counts": {
+            "True": 7
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 3,
+            "MEL": 4
+          },
+          "encoded_unknown_columns": [
+            "grew"
+          ],
+          "missing_columns": [
+            "grew"
+          ],
+          "row_count": 7
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 1
+          },
+          "encoded_unknown_columns": [
+            "hurt"
+          ],
+          "missing_columns": [
+            "hurt"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
+            "True": 40
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 7,
+            "BCC": 17,
+            "MEL": 5,
+            "NEV": 2,
+            "SCC": 7,
+            "SEK": 2
+          },
+          "encoded_unknown_columns": [
+            "background_father",
+            "background_mother"
+          ],
+          "missing_columns": [
+            "background_father",
+            "background_mother"
+          ],
+          "row_count": 40
+        },
+        {
+          "biopsed_counts": {
             "False": 12
           },
+          "blank_columns": [
+            "background_father",
+            "background_mother"
+          ],
           "diagnosis_counts": {
             "ACK": 3,
             "NEV": 2,
             "SEK": 7
           },
+          "encoded_unknown_columns": [],
           "missing_columns": [
             "background_father",
             "background_mother"
@@ -815,13 +990,312 @@
         },
         {
           "biopsed_counts": {
+            "True": 345
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 1,
+            "BCC": 243,
+            "MEL": 6,
+            "NEV": 23,
+            "SCC": 67,
+            "SEK": 5
+          },
+          "encoded_unknown_columns": [
+            "grew",
+            "changed"
+          ],
+          "missing_columns": [
+            "grew",
+            "changed"
+          ],
+          "row_count": 345
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 1
+          },
+          "encoded_unknown_columns": [
+            "itch",
+            "grew"
+          ],
+          "missing_columns": [
+            "itch",
+            "grew"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
+            "True": 5
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "BCC": 4,
+            "SCC": 1
+          },
+          "encoded_unknown_columns": [
+            "background_father",
+            "grew",
+            "changed"
+          ],
+          "missing_columns": [
+            "background_father",
+            "grew",
+            "changed"
+          ],
+          "row_count": 5
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "BCC": 1
+          },
+          "encoded_unknown_columns": [
+            "background_mother",
+            "grew",
+            "changed"
+          ],
+          "missing_columns": [
+            "background_mother",
+            "grew",
+            "changed"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
+            "True": 4
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "BCC": 4
+          },
+          "encoded_unknown_columns": [
+            "grew",
+            "changed",
+            "bleed"
+          ],
+          "missing_columns": [
+            "grew",
+            "changed",
+            "bleed"
+          ],
+          "row_count": 4
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "MEL": 1
+          },
+          "encoded_unknown_columns": [
+            "grew",
+            "changed",
+            "elevation"
+          ],
+          "missing_columns": [
+            "grew",
+            "changed",
+            "elevation"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
+            "True": 6
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "BCC": 2,
+            "NEV": 4
+          },
+          "encoded_unknown_columns": [
+            "grew",
+            "hurt",
+            "changed"
+          ],
+          "missing_columns": [
+            "grew",
+            "hurt",
+            "changed"
+          ],
+          "row_count": 6
+        },
+        {
+          "biopsed_counts": {
+            "True": 2
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "ACK": 1,
+            "SCC": 1
+          },
+          "encoded_unknown_columns": [
+            "itch",
+            "grew",
+            "changed"
+          ],
+          "missing_columns": [
+            "itch",
+            "grew",
+            "changed"
+          ],
+          "row_count": 2
+        },
+        {
+          "biopsed_counts": {
+            "True": 26
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "BCC": 11,
+            "NEV": 8,
+            "SCC": 4,
+            "SEK": 3
+          },
+          "encoded_unknown_columns": [
+            "background_father",
+            "background_mother",
+            "grew",
+            "changed"
+          ],
+          "missing_columns": [
+            "background_father",
+            "background_mother",
+            "grew",
+            "changed"
+          ],
+          "row_count": 26
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "BCC": 1
+          },
+          "encoded_unknown_columns": [
+            "grew",
+            "hurt",
+            "changed",
+            "bleed"
+          ],
+          "missing_columns": [
+            "grew",
+            "hurt",
+            "changed",
+            "bleed"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "SCC": 1
+          },
+          "encoded_unknown_columns": [
+            "itch",
+            "grew",
+            "hurt",
+            "changed"
+          ],
+          "missing_columns": [
+            "itch",
+            "grew",
+            "hurt",
+            "changed"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "SCC": 1
+          },
+          "encoded_unknown_columns": [
+            "background_father",
+            "background_mother",
+            "itch",
+            "grew",
+            "changed"
+          ],
+          "missing_columns": [
+            "background_father",
+            "background_mother",
+            "itch",
+            "grew",
+            "changed"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
+            "True": 1
+          },
+          "blank_columns": [],
+          "diagnosis_counts": {
+            "NEV": 1
+          },
+          "encoded_unknown_columns": [
+            "itch",
+            "grew",
+            "hurt",
+            "changed",
+            "bleed",
+            "elevation"
+          ],
+          "missing_columns": [
+            "itch",
+            "grew",
+            "hurt",
+            "changed",
+            "bleed",
+            "elevation"
+          ],
+          "row_count": 1
+        },
+        {
+          "biopsed_counts": {
             "False": 804
           },
+          "blank_columns": [
+            "smoke",
+            "drink",
+            "background_father",
+            "background_mother",
+            "pesticide",
+            "gender",
+            "skin_cancer_history",
+            "cancer_history",
+            "has_piped_water",
+            "has_sewage_system",
+            "fitspatrick",
+            "diameter_1",
+            "diameter_2"
+          ],
           "diagnosis_counts": {
             "ACK": 447,
             "NEV": 169,
             "SEK": 188
           },
+          "encoded_unknown_columns": [],
           "missing_columns": [
             "smoke",
             "drink",
@@ -863,6 +1337,7 @@
     "unique_lesions": 1641,
     "unique_patients": 1373
   },
+  "readiness_issues": [],
   "schema_version": "0.1",
   "unresolved_issues": [
     "PAD-UFES-20 authoritative source and license details remain TODO in the dataset card."
@@ -872,6 +1347,7 @@
     "PAD-UFES-20 melanoma prevalence is below 5%; ordinary accuracy is not suitable as a primary conclusion.",
     "PAD-UFES-20 contains patients with multiple images; future splits must be patient-aware to avoid leakage.",
     "PAD-UFES-20 contains lesions with multiple images; lesion-level grouping must be preserved during evaluation.",
-    "PAD-UFES-20 metadata missingness is structured; automatic complete-case filtering or imputation requires a protocol decision."
+    "PAD-UFES-20 metadata missingness is structured; automatic complete-case filtering or imputation requires a protocol decision.",
+    "PAD-UFES-20 uses explicit UNK values in some metadata fields; the audit reports these separately from blank cells and includes both in total missingness."
   ]
 }
