@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,7 @@ from scripts.audit_datasets import (
     AuditError,
     LabelMapping,
     audit_derm7pt,
+    audit_pad_ufes20,
     binary_distribution,
     load_mapping,
     resolve_data_root,
@@ -45,6 +47,35 @@ DERM7PT_FIELDS = [
     "derm",
     "case_id",
     "notes",
+]
+
+PAD_FIELDS = [
+    "patient_id",
+    "lesion_id",
+    "smoke",
+    "drink",
+    "background_father",
+    "background_mother",
+    "age",
+    "pesticide",
+    "gender",
+    "skin_cancer_history",
+    "cancer_history",
+    "has_piped_water",
+    "has_sewage_system",
+    "fitspatrick",
+    "region",
+    "diameter_1",
+    "diameter_2",
+    "diagnostic",
+    "itch",
+    "grew",
+    "hurt",
+    "changed",
+    "bleed",
+    "elevation",
+    "img_id",
+    "biopsed",
 ]
 
 
@@ -140,6 +171,76 @@ def _make_derm7pt_fixture(root: Path) -> Path:
         "C/derm2.jpg",
     }:
         image = dataset_dir / "images" / relative
+        image.parent.mkdir(parents=True, exist_ok=True)
+        image.write_bytes(b"fixture-image")
+    return dataset_dir
+
+
+def _make_pad_fixture(root: Path) -> Path:
+    dataset_dir = root / "pad_ufes20"
+    base = {
+        "smoke": "False",
+        "drink": "False",
+        "background_father": "EUROPE",
+        "background_mother": "EUROPE",
+        "age": "60",
+        "pesticide": "False",
+        "gender": "FEMALE",
+        "skin_cancer_history": "False",
+        "cancer_history": "False",
+        "has_piped_water": "True",
+        "has_sewage_system": "True",
+        "fitspatrick": "2",
+        "region": "ARM",
+        "diameter_1": "5",
+        "diameter_2": "4",
+        "itch": "False",
+        "grew": "False",
+        "hurt": "False",
+        "changed": "False",
+        "bleed": "False",
+        "elevation": "False",
+        "biopsed": "True",
+    }
+    rows = [
+        {
+            **base,
+            "patient_id": "PAT_ALPHA",
+            "lesion_id": "LESION_ALPHA",
+            "diagnostic": "MEL",
+            "img_id": "image_1.png",
+        },
+        {
+            **base,
+            "patient_id": "PAT_ALPHA",
+            "lesion_id": "LESION_ALPHA",
+            "diagnostic": "BCC",
+            "img_id": "image_2.png",
+        },
+        {
+            **base,
+            "patient_id": "PAT_BETA",
+            "lesion_id": "LESION_BETA",
+            "smoke": "",
+            "drink": "",
+            "diagnostic": "NEV",
+            "img_id": "image_3.png",
+            "biopsed": "False",
+        },
+        {
+            **base,
+            "patient_id": "PAT_GAMMA",
+            "lesion_id": "LESION_GAMMA",
+            "smoke": "",
+            "drink": "",
+            "diagnostic": "ACK",
+            "img_id": "image_4.png",
+            "biopsed": "False",
+        },
+    ]
+    _write_csv(dataset_dir / "metadata.csv", PAD_FIELDS, rows)
+    for row in rows:
+        image = dataset_dir / "images" / row["img_id"]
         image.parent.mkdir(parents=True, exist_ok=True)
         image.write_bytes(b"fixture-image")
     return dataset_dir
@@ -300,6 +401,180 @@ def test_audit_derm7pt_rejects_unmapped_diagnosis(tmp_path: Path) -> None:
         AuditError, match="Unmapped diagnosis for Derm7pt: not-in-mapping"
     ):
         audit_derm7pt(
+            dataset_dir,
+            load_mapping(
+                Path(__file__).parents[1]
+                / "datasets/mappings/melanoma_binary_v0.1.csv"
+            ),
+        )
+
+
+def test_audit_pad_reports_matching_multiplicity_and_structured_missingness(
+    tmp_path: Path,
+) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+    mapping = load_mapping(
+        Path(__file__).parents[1]
+        / "datasets/mappings/melanoma_binary_v0.1.csv"
+    )
+
+    result = audit_pad_ufes20(dataset_dir, mapping)
+
+    assert result["metadata_rows"] == 4
+    assert result["images"] == {
+        "metadata_references": 4,
+        "unique_image_ids": 4,
+        "extracted_images": 4,
+        "duplicate_image_id_excess": 0,
+        "duplicate_extracted_filename_excess": 0,
+        "missing_images": 0,
+        "unreferenced_images": 0,
+        "metadata_image_match": True,
+    }
+    assert result["unique_patients"] == 3
+    assert result["unique_lesions"] == 3
+    assert result["patient_multiplicity"] == {
+        "unique_entities": 3,
+        "entities_with_multiple_images": 1,
+        "max_images_per_entity": 2,
+        "image_count_distribution": [
+            {"images_per_entity": 1, "entity_count": 2},
+            {"images_per_entity": 2, "entity_count": 1},
+        ],
+    }
+    assert result["lesion_multiplicity"] == result["patient_multiplicity"]
+    assert result["binary"]["melanoma_count"] == 1
+    assert result["binary"]["non_melanoma_count"] == 3
+    assert result["binary"]["melanoma_prevalence"] == 0.25
+    missingness = {row["column"]: row for row in result["missingness"]}
+    assert missingness["smoke"]["missing_count"] == 2
+    assert missingness["drink"]["missing_fraction"] == 0.5
+    assert result["structured_missingness"]["shared_groups"] == [
+        {
+            "group_id": "missing_set_001",
+            "columns": ["smoke", "drink"],
+            "missing_count": 2,
+        }
+    ]
+    assert result["structured_missingness"]["patterns"] == [
+        {
+            "missing_columns": [],
+            "row_count": 2,
+            "diagnosis_counts": {"BCC": 1, "MEL": 1},
+            "biopsed_counts": {"True": 2},
+        },
+        {
+            "missing_columns": ["smoke", "drink"],
+            "row_count": 2,
+            "diagnosis_counts": {"ACK": 1, "NEV": 1},
+            "biopsed_counts": {"False": 2},
+        },
+    ]
+
+
+def test_pad_summary_does_not_contain_patient_lesion_or_image_identifiers(
+    tmp_path: Path,
+) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+
+    result = audit_pad_ufes20(
+        dataset_dir,
+        load_mapping(
+            Path(__file__).parents[1]
+            / "datasets/mappings/melanoma_binary_v0.1.csv"
+        ),
+    )
+
+    serialized = json.dumps(result, sort_keys=True)
+    for identifier in (
+        "PAT_ALPHA",
+        "PAT_BETA",
+        "LESION_ALPHA",
+        "LESION_BETA",
+        "image_1.png",
+        "image_2.png",
+    ):
+        assert identifier not in serialized
+
+
+def test_audit_pad_rejects_duplicate_image_ids(tmp_path: Path) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+    metadata_path = dataset_dir / "metadata.csv"
+    rows = _read_csv(metadata_path)
+    rows[1]["img_id"] = rows[0]["img_id"]
+    _write_csv(metadata_path, PAD_FIELDS, rows)
+
+    with pytest.raises(AuditError, match="Duplicate PAD image IDs"):
+        audit_pad_ufes20(
+            dataset_dir,
+            load_mapping(
+                Path(__file__).parents[1]
+                / "datasets/mappings/melanoma_binary_v0.1.csv"
+            ),
+        )
+
+
+def test_audit_pad_rejects_empty_image_id(tmp_path: Path) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+    metadata_path = dataset_dir / "metadata.csv"
+    rows = _read_csv(metadata_path)
+    rows[0]["img_id"] = ""
+    _write_csv(metadata_path, PAD_FIELDS, rows)
+
+    with pytest.raises(AuditError, match="Empty PAD image ID"):
+        audit_pad_ufes20(
+            dataset_dir,
+            load_mapping(
+                Path(__file__).parents[1]
+                / "datasets/mappings/melanoma_binary_v0.1.csv"
+            ),
+        )
+
+
+def test_audit_pad_rejects_duplicate_extracted_filenames(tmp_path: Path) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+    duplicate = dataset_dir / "images/nested/image_1.png"
+    duplicate.parent.mkdir(parents=True)
+    duplicate.write_bytes(b"duplicate-name")
+
+    with pytest.raises(AuditError, match="Duplicate extracted PAD filenames"):
+        audit_pad_ufes20(
+            dataset_dir,
+            load_mapping(
+                Path(__file__).parents[1]
+                / "datasets/mappings/melanoma_binary_v0.1.csv"
+            ),
+        )
+
+
+def test_audit_pad_rejects_missing_or_unreferenced_images(tmp_path: Path) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+    (dataset_dir / "images/image_1.png").unlink()
+    (dataset_dir / "images/orphan.png").write_bytes(b"orphan")
+
+    with pytest.raises(
+        AuditError, match="PAD image inventory mismatch: missing=1, unreferenced=1"
+    ):
+        audit_pad_ufes20(
+            dataset_dir,
+            load_mapping(
+                Path(__file__).parents[1]
+                / "datasets/mappings/melanoma_binary_v0.1.csv"
+            ),
+        )
+
+
+def test_audit_pad_rejects_unmapped_diagnosis(tmp_path: Path) -> None:
+    dataset_dir = _make_pad_fixture(tmp_path)
+    metadata_path = dataset_dir / "metadata.csv"
+    rows = _read_csv(metadata_path)
+    rows[0]["diagnostic"] = "UNKNOWN"
+    _write_csv(metadata_path, PAD_FIELDS, rows)
+
+    with pytest.raises(
+        AuditError, match="Unmapped diagnosis for PAD-UFES-20: UNKNOWN"
+    ):
+        audit_pad_ufes20(
             dataset_dir,
             load_mapping(
                 Path(__file__).parents[1]

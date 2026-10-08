@@ -8,7 +8,7 @@ import os
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 
 MAPPING_FIELDS = (
@@ -50,6 +50,35 @@ DERM7PT_CONCEPTS = (
     "dots_and_globules",
     "blue_whitish_veil",
     "vascular_structures",
+)
+
+PAD_FIELDS = (
+    "patient_id",
+    "lesion_id",
+    "smoke",
+    "drink",
+    "background_father",
+    "background_mother",
+    "age",
+    "pesticide",
+    "gender",
+    "skin_cancer_history",
+    "cancer_history",
+    "has_piped_water",
+    "has_sewage_system",
+    "fitspatrick",
+    "region",
+    "diameter_1",
+    "diameter_2",
+    "diagnostic",
+    "itch",
+    "grew",
+    "hurt",
+    "changed",
+    "bleed",
+    "elevation",
+    "img_id",
+    "biopsed",
 )
 
 
@@ -319,6 +348,167 @@ def audit_derm7pt(
         "missingness": missingness,
         "concepts": concepts,
         "splits": validate_official_splits(dataset_dir / "meta", len(rows)),
+    }
+
+
+def summarize_multiplicity(values: Iterable[str]) -> dict[str, Any]:
+    """Summarize repeated entity IDs without returning the identifiers."""
+
+    counts = Counter(values)
+    count_distribution = Counter(counts.values())
+    return {
+        "unique_entities": len(counts),
+        "entities_with_multiple_images": sum(count > 1 for count in counts.values()),
+        "max_images_per_entity": max(counts.values(), default=0),
+        "image_count_distribution": [
+            {
+                "images_per_entity": images_per_entity,
+                "entity_count": count_distribution[images_per_entity],
+            }
+            for images_per_entity in sorted(count_distribution)
+        ],
+    }
+
+
+def summarize_structured_missingness(
+    rows: Sequence[Mapping[str, str]],
+) -> dict[str, Any]:
+    """Describe missingness signatures without exposing row identifiers."""
+
+    columns = tuple(rows[0]) if rows else PAD_FIELDS
+    missing_sets: dict[str, frozenset[int]] = {
+        column: frozenset(
+            index for index, row in enumerate(rows) if not row.get(column, "")
+        )
+        for column in columns
+    }
+    grouped_columns: dict[frozenset[int], list[str]] = {}
+    for column, missing_rows in missing_sets.items():
+        if missing_rows:
+            grouped_columns.setdefault(missing_rows, []).append(column)
+
+    shared_groups = []
+    group_by_column: dict[str, str] = {}
+    shared = [
+        (missing_rows, grouped)
+        for missing_rows, grouped in grouped_columns.items()
+        if len(grouped) > 1
+    ]
+    shared.sort(key=lambda item: (-len(item[0]), tuple(item[1])))
+    for number, (missing_rows, grouped) in enumerate(shared, start=1):
+        group_id = f"missing_set_{number:03d}"
+        shared_groups.append(
+            {
+                "group_id": group_id,
+                "columns": grouped,
+                "missing_count": len(missing_rows),
+            }
+        )
+        for column in grouped:
+            group_by_column[column] = group_id
+
+    pattern_rows: dict[tuple[str, ...], list[Mapping[str, str]]] = {}
+    for row in rows:
+        signature = tuple(column for column in columns if not row.get(column, ""))
+        pattern_rows.setdefault(signature, []).append(row)
+
+    patterns = []
+    for signature in sorted(pattern_rows, key=lambda value: (len(value), value)):
+        grouped_rows = pattern_rows[signature]
+        patterns.append(
+            {
+                "missing_columns": list(signature),
+                "row_count": len(grouped_rows),
+                "diagnosis_counts": dict(
+                    sorted(Counter(row["diagnostic"] for row in grouped_rows).items())
+                ),
+                "biopsed_counts": dict(
+                    sorted(Counter(row["biopsed"] for row in grouped_rows).items())
+                ),
+            }
+        )
+    return {
+        "shared_groups": shared_groups,
+        "patterns": patterns,
+        "group_by_column": group_by_column,
+    }
+
+
+def audit_pad_ufes20(
+    dataset_dir: Path,
+    mapping: Mapping[tuple[str, str], LabelMapping],
+) -> dict[str, Any]:
+    """Audit an extracted PAD-UFES-20 copy using aggregate statistics only."""
+
+    rows = _read_csv_rows(dataset_dir / "metadata.csv", PAD_FIELDS)
+    images_dir = dataset_dir / "images"
+    if not images_dir.is_dir():
+        raise AuditError(f"Required image directory not found: {images_dir}")
+
+    image_ids = [row["img_id"] for row in rows]
+    extracted_names = [
+        path.name for path in images_dir.rglob("*") if path.is_file()
+    ]
+    if any(not image_id for image_id in image_ids):
+        raise AuditError("Empty PAD image ID")
+    unique_image_ids = set(image_ids)
+    unique_extracted_names = set(extracted_names)
+    if len(image_ids) != len(unique_image_ids):
+        raise AuditError("Duplicate PAD image IDs")
+    if len(extracted_names) != len(unique_extracted_names):
+        raise AuditError("Duplicate extracted PAD filenames")
+    missing_images = unique_image_ids - unique_extracted_names
+    unreferenced_images = unique_extracted_names - unique_image_ids
+    if missing_images or unreferenced_images:
+        raise AuditError(
+            "PAD image inventory mismatch: "
+            f"missing={len(missing_images)}, "
+            f"unreferenced={len(unreferenced_images)}"
+        )
+    structured = summarize_structured_missingness(rows)
+    missingness = [
+        {
+            "column": column,
+            "missing_count": sum(not row[column] for row in rows),
+            "missing_fraction": (
+                sum(not row[column] for row in rows) / len(rows) if rows else 0.0
+            ),
+            "structural_group": structured["group_by_column"].get(column, ""),
+        }
+        for column in PAD_FIELDS
+    ]
+
+    return {
+        "dataset": "PAD-UFES-20",
+        "metadata_rows": len(rows),
+        "unique_patients": len({row["patient_id"] for row in rows}),
+        "unique_lesions": len({row["lesion_id"] for row in rows}),
+        "patient_multiplicity": summarize_multiplicity(
+            row["patient_id"] for row in rows
+        ),
+        "lesion_multiplicity": summarize_multiplicity(
+            row["lesion_id"] for row in rows
+        ),
+        "binary": binary_distribution(
+            "PAD-UFES-20", rows, "diagnostic", mapping
+        ),
+        "images": {
+            "metadata_references": len(image_ids),
+            "unique_image_ids": len(unique_image_ids),
+            "extracted_images": len(extracted_names),
+            "duplicate_image_id_excess": len(image_ids) - len(unique_image_ids),
+            "duplicate_extracted_filename_excess": (
+                len(extracted_names) - len(unique_extracted_names)
+            ),
+            "missing_images": len(missing_images),
+            "unreferenced_images": len(unreferenced_images),
+            "metadata_image_match": unique_image_ids == unique_extracted_names,
+        },
+        "missingness": missingness,
+        "structured_missingness": {
+            "shared_groups": structured["shared_groups"],
+            "patterns": structured["patterns"],
+        },
     }
 
 
