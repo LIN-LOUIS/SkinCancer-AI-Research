@@ -4,7 +4,10 @@
 from __future__ import annotations
 
 import csv
+import json
 import os
+import sys
+import tempfile
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -512,5 +515,478 @@ def audit_pad_ufes20(
     }
 
 
+def _write_csv_file(
+    path: Path, fieldnames: Sequence[str], rows: Sequence[Mapping[str, Any]]
+) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
+
+
+def write_csv_reports(
+    summary: Mapping[str, Any], report_dir: Path
+) -> list[Path]:
+    """Write the six deterministic aggregate CSV reports."""
+
+    derm = summary["derm7pt"]
+    pad = summary["pad_ufes20"]
+    report_dir.mkdir(parents=True, exist_ok=True)
+
+    dataset_summary = [
+        {
+            "dataset": "Derm7pt",
+            "sample_unit": "case",
+            "modalities": "clinical;dermoscopy",
+            "metadata_rows": derm["metadata_rows"],
+            "image_count": derm["images"]["extracted_images"],
+            "unique_patients": "",
+            "unique_lesions": "",
+            "melanoma_count": derm["binary"]["melanoma_count"],
+            "non_melanoma_count": derm["binary"]["non_melanoma_count"],
+            "melanoma_prevalence": derm["binary"]["melanoma_prevalence"],
+        },
+        {
+            "dataset": "PAD-UFES-20",
+            "sample_unit": "image row",
+            "modalities": "clinical",
+            "metadata_rows": pad["metadata_rows"],
+            "image_count": pad["images"]["extracted_images"],
+            "unique_patients": pad["unique_patients"],
+            "unique_lesions": pad["unique_lesions"],
+            "melanoma_count": pad["binary"]["melanoma_count"],
+            "non_melanoma_count": pad["binary"]["non_melanoma_count"],
+            "melanoma_prevalence": pad["binary"]["melanoma_prevalence"],
+        },
+    ]
+    paths = [
+        _write_csv_file(
+            report_dir / "dataset_summary.csv",
+            (
+                "dataset",
+                "sample_unit",
+                "modalities",
+                "metadata_rows",
+                "image_count",
+                "unique_patients",
+                "unique_lesions",
+                "melanoma_count",
+                "non_melanoma_count",
+                "melanoma_prevalence",
+            ),
+            dataset_summary,
+        )
+    ]
+
+    diagnosis_fields = (
+        "dataset",
+        "diagnosis",
+        "count",
+        "fraction",
+        "target_name",
+        "target",
+        "include",
+    )
+    paths.append(
+        _write_csv_file(
+            report_dir / "derm7pt_diagnosis_distribution.csv",
+            diagnosis_fields,
+            [
+                {"dataset": "Derm7pt", **row}
+                for row in derm["binary"]["distribution"]
+            ],
+        )
+    )
+    concept_rows = [
+        {"concept": concept, **row}
+        for concept in DERM7PT_CONCEPTS
+        for row in derm["concepts"][concept]
+    ]
+    paths.append(
+        _write_csv_file(
+            report_dir / "derm7pt_concept_distribution.csv",
+            ("concept", "value", "count", "fraction"),
+            concept_rows,
+        )
+    )
+    paths.append(
+        _write_csv_file(
+            report_dir / "derm7pt_missingness.csv",
+            ("column", "missing_count", "missing_fraction"),
+            derm["missingness"],
+        )
+    )
+    paths.append(
+        _write_csv_file(
+            report_dir / "pad_diagnosis_distribution.csv",
+            diagnosis_fields,
+            [
+                {"dataset": "PAD-UFES-20", **row}
+                for row in pad["binary"]["distribution"]
+            ],
+        )
+    )
+    paths.append(
+        _write_csv_file(
+            report_dir / "pad_missingness.csv",
+            (
+                "column",
+                "missing_count",
+                "missing_fraction",
+                "structural_group",
+            ),
+            pad["missingness"],
+        )
+    )
+    return paths
+
+
+def write_json_summary(summary: Mapping[str, Any], path: Path) -> Path:
+    """Write a deterministic machine-readable audit summary."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        json.dump(summary, handle, ensure_ascii=False, indent=2, sort_keys=True)
+        handle.write("\n")
+    return path
+
+
+def build_markdown_report(summary: Mapping[str, Any]) -> str:
+    """Build a human-readable report entirely from computed aggregates."""
+
+    derm = summary["derm7pt"]
+    pad = summary["pad_ufes20"]
+    warning_lines = "\n".join(f"- {warning}" for warning in summary["warnings"])
+    unresolved = summary.get("unresolved_issues", [])
+    unresolved_lines = (
+        "\n".join(f"- {issue}" for issue in unresolved)
+        if unresolved
+        else "- None that block cohort construction or binary target mapping."
+    )
+    shared_groups = pad["structured_missingness"]["shared_groups"]
+    structured_lines = (
+        "\n".join(
+            "- "
+            f"{group['missing_count']} rows share missingness across: "
+            + ", ".join(group["columns"])
+            for group in shared_groups
+        )
+        if shared_groups
+        else "- No columns share an identical non-empty missing-row set."
+    )
+    return f"""# Data Audit v0.1
+
+## Scope and methods
+
+This report was generated from the local metadata and extracted image
+inventories by `scripts/audit_datasets.py`. It contains aggregate statistics
+only. The target is melanoma versus non-melanoma, not malignant versus benign;
+PAD-UFES-20 BCC and SCC are therefore non-melanoma.
+
+## Dataset overview
+
+| Dataset | Metadata rows | Images | Melanoma | Non-melanoma | Prevalence |
+|---|---:|---:|---:|---:|---:|
+| Derm7pt | {derm['metadata_rows']} | {derm['images']['extracted_images']} | {derm['binary']['melanoma_count']} | {derm['binary']['non_melanoma_count']} | {derm['binary']['melanoma_prevalence']:.2%} |
+| PAD-UFES-20 | {pad['metadata_rows']} | {pad['images']['extracted_images']} | {pad['binary']['melanoma_count']} | {pad['binary']['non_melanoma_count']} | {pad['binary']['melanoma_prevalence']:.2%} |
+
+## Derm7pt integrity
+
+- Clinical image references: {derm['images']['clinical_references']}
+- Dermoscopy image references: {derm['images']['dermoscopy_references']}
+- Unique referenced images: {derm['images']['unique_referenced_images']}
+- Duplicate-reference excess: {derm['images']['duplicate_reference_excess']}
+- Missing references: {derm['images']['missing_references']}
+- Unreferenced images: {derm['images']['unreferenced_images']}
+- Official split sizes: train={derm['splits']['sizes']['train']}, valid={derm['splits']['sizes']['valid']}, test={derm['splits']['sizes']['test']}
+- Official split integrity: {'PASS' if derm['splits']['valid'] else 'FAIL'}
+
+## PAD-UFES-20 integrity
+
+- Unique patients: {pad['unique_patients']}
+- Unique lesions: {pad['unique_lesions']}
+- Patients with multiple images: {pad['patient_multiplicity']['entities_with_multiple_images']}
+- Lesions with multiple images: {pad['lesion_multiplicity']['entities_with_multiple_images']}
+- Duplicate image-ID excess: {pad['images']['duplicate_image_id_excess']}
+- Missing images: {pad['images']['missing_images']}
+- Unreferenced images: {pad['images']['unreferenced_images']}
+
+## Structured missingness
+
+The following patterns are descriptive and do not establish a missingness
+mechanism or justify automatic imputation.
+
+{structured_lines}
+
+## Warnings
+
+{warning_lines}
+
+## Unresolved issues
+
+{unresolved_lines}
+
+## Baseline v0.1 readiness
+
+**{summary['baseline_readiness']}**
+
+Readiness covers data inventory, target mapping, and official split integrity.
+It does not remove the need for patient-aware evaluation, class-imbalance
+handling, calibration analysis, or a frozen experiment protocol.
+"""
+
+
+def _finish_figure(figure: Any, path: Path) -> Path:
+    figure.tight_layout()
+    figure.savefig(path, dpi=300, bbox_inches="tight", facecolor="white")
+    return path
+
+
+def render_figures(summary: Mapping[str, Any], figure_dir: Path) -> list[Path]:
+    """Render the five publication-oriented audit figures."""
+
+    os.environ.setdefault(
+        "MPLCONFIGDIR",
+        str(Path(tempfile.gettempdir()) / "skincancer-audit-mpl"),
+    )
+    import matplotlib
+
+    matplotlib.use("Agg", force=True)
+    import matplotlib.pyplot as plt
+
+    plt.rcParams.update(
+        {
+            "font.size": 10,
+            "axes.titlesize": 12,
+            "axes.labelsize": 11,
+            "figure.dpi": 120,
+            "savefig.dpi": 300,
+        }
+    )
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    derm = summary["derm7pt"]
+    pad = summary["pad_ufes20"]
+    blue = "#0072B2"
+    orange = "#E69F00"
+    green = "#009E73"
+    paths: list[Path] = []
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+    labels = ["Derm7pt", "PAD-UFES-20"]
+    x = [0, 1]
+    width = 0.34
+    rows = [derm["metadata_rows"], pad["metadata_rows"]]
+    images = [
+        derm["images"]["extracted_images"],
+        pad["images"]["extracted_images"],
+    ]
+    bars_rows = ax.bar(
+        [value - width / 2 for value in x], rows, width, label="Metadata rows", color=blue
+    )
+    bars_images = ax.bar(
+        [value + width / 2 for value in x], images, width, label="Images", color=orange
+    )
+    ax.bar_label(bars_rows, padding=3)
+    ax.bar_label(bars_images, padding=3)
+    ax.set_xticks(x, labels)
+    ax.set_ylim(bottom=0)
+    ax.set_ylabel("Count")
+    ax.set_title("Dataset Overview")
+    ax.legend(frameon=False)
+    ax.grid(axis="y", alpha=0.25)
+    path = figure_dir / "01_dataset_overview.png"
+    paths.append(_finish_figure(fig, path))
+    plt.close(fig)
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 11))
+    for ax, dataset_name, dataset, color in (
+        (axes[0], "Derm7pt", derm, blue),
+        (axes[1], "PAD-UFES-20", pad, orange),
+    ):
+        ordered = sorted(
+            dataset["binary"]["distribution"],
+            key=lambda row: (row["count"], row["diagnosis"]),
+        )
+        bars = ax.barh(
+            [row["diagnosis"] for row in ordered],
+            [row["count"] for row in ordered],
+            color=color,
+        )
+        ax.bar_label(bars, padding=3, fontsize=8)
+        ax.set_xlim(left=0)
+        ax.set_xlabel("Cases / images")
+        ax.set_title(f"{dataset_name} Diagnosis Distribution")
+        ax.grid(axis="x", alpha=0.25)
+    path = figure_dir / "02_diagnosis_distribution.png"
+    paths.append(_finish_figure(fig, path))
+    plt.close(fig)
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    prevalence = [
+        derm["binary"]["melanoma_prevalence"] * 100,
+        pad["binary"]["melanoma_prevalence"] * 100,
+    ]
+    bars = ax.bar(labels, prevalence, color=[blue, orange], width=0.6)
+    ax.bar_label(bars, labels=[f"{value:.2f}%" for value in prevalence], padding=4)
+    ax.set_ylim(0, max(prevalence) * 1.25 if max(prevalence) else 1)
+    ax.set_ylabel("Melanoma prevalence (%)")
+    ax.set_title("Melanoma Prevalence by Dataset")
+    ax.grid(axis="y", alpha=0.25)
+    path = figure_dir / "03_melanoma_prevalence.png"
+    paths.append(_finish_figure(fig, path))
+    plt.close(fig)
+
+    fig, axes = plt.subplots(4, 2, figsize=(14, 16))
+    flat_axes = list(axes.flat)
+    for ax, concept in zip(flat_axes, DERM7PT_CONCEPTS):
+        values = derm["concepts"][concept]
+        bars = ax.barh(
+            [row["value"] for row in values],
+            [row["fraction"] * 100 for row in values],
+            color=green,
+        )
+        ax.bar_label(
+            bars,
+            labels=[f"{row['fraction']:.1%}" for row in values],
+            padding=3,
+            fontsize=8,
+        )
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Cases (%)")
+        ax.set_title(concept.replace("_", " ").title())
+        ax.grid(axis="x", alpha=0.25)
+    flat_axes[-1].axis("off")
+    fig.suptitle("Derm7pt Clinical Concept Distributions", fontsize=15, y=1.01)
+    path = figure_dir / "04_derm7pt_concept_distribution.png"
+    paths.append(_finish_figure(fig, path))
+    plt.close(fig)
+
+    nonzero_missingness = [
+        row for row in pad["missingness"] if row["missing_count"] > 0
+    ]
+    nonzero_missingness.sort(
+        key=lambda row: (row["missing_fraction"], row["column"])
+    )
+    fig, ax = plt.subplots(figsize=(11, max(6, len(nonzero_missingness) * 0.45)))
+    bars = ax.barh(
+        [row["column"].replace("_", " ") for row in nonzero_missingness],
+        [row["missing_fraction"] * 100 for row in nonzero_missingness],
+        color=orange,
+    )
+    ax.bar_label(
+        bars,
+        labels=[f"{row['missing_fraction']:.1%}" for row in nonzero_missingness],
+        padding=3,
+        fontsize=8,
+    )
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("Missing values (%)")
+    ax.set_title("PAD-UFES-20 Metadata Missingness")
+    ax.grid(axis="x", alpha=0.25)
+    path = figure_dir / "05_pad_metadata_missingness.png"
+    paths.append(_finish_figure(fig, path))
+    plt.close(fig)
+
+    return paths
+
+
+def _audit_warnings(derm: Mapping[str, Any], pad: Mapping[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    if derm["images"]["duplicate_reference_excess"]:
+        warnings.append(
+            "Derm7pt contains repeated image references across its clinical and "
+            "dermoscopy reference columns; these are duplicates, not missing files."
+        )
+    if pad["binary"]["melanoma_prevalence"] < 0.05:
+        warnings.append(
+            "PAD-UFES-20 melanoma prevalence is below 5%; ordinary accuracy is "
+            "not suitable as a primary conclusion."
+        )
+    if pad["patient_multiplicity"]["entities_with_multiple_images"]:
+        warnings.append(
+            "PAD-UFES-20 contains patients with multiple images; future splits "
+            "must be patient-aware to avoid leakage."
+        )
+    if pad["lesion_multiplicity"]["entities_with_multiple_images"]:
+        warnings.append(
+            "PAD-UFES-20 contains lesions with multiple images; lesion-level "
+            "grouping must be preserved during evaluation."
+        )
+    if pad["structured_missingness"]["shared_groups"]:
+        warnings.append(
+            "PAD-UFES-20 metadata missingness is structured; automatic "
+            "complete-case filtering or imputation requires a protocol decision."
+        )
+    return warnings
+
+
+def run_audit(data_root: Path, repo_root: Path) -> dict[str, Any]:
+    """Run both audits and write every versioned aggregate artifact."""
+
+    paths = AuditPaths(
+        data_root=data_root,
+        derm7pt_dir=(
+            data_root / "raw/derm7pt/release_v0/release_v0"
+        ),
+        pad_ufes20_dir=data_root / "raw/pad_ufes20",
+        mapping_path=repo_root
+        / "datasets/mappings/melanoma_binary_v0.1.csv",
+        report_dir=repo_root / "reports/data_audit/v0.1",
+        figure_dir=repo_root
+        / "experiments/paper1_concept_dg/figures/data_audit",
+    )
+    mapping = load_mapping(paths.mapping_path)
+    derm = audit_derm7pt(paths.derm7pt_dir, mapping)
+    pad = audit_pad_ufes20(paths.pad_ufes20_dir, mapping)
+    summary: dict[str, Any] = {
+        "schema_version": "0.1",
+        "inputs": {
+            "derm7pt": "raw/derm7pt/release_v0/release_v0",
+            "pad_ufes20": "raw/pad_ufes20",
+        },
+        "derm7pt": derm,
+        "pad_ufes20": pad,
+        "warnings": _audit_warnings(derm, pad),
+        "unresolved_issues": [
+            "PAD-UFES-20 authoritative source and license details remain TODO "
+            "in the dataset card."
+        ],
+        "baseline_readiness": "READY",
+    }
+
+    write_csv_reports(summary, paths.report_dir)
+    write_json_summary(summary, paths.report_dir / "audit_summary.json")
+    report_path = paths.report_dir / "audit_report.md"
+    report_path.write_text(
+        build_markdown_report(summary), encoding="utf-8", newline="\n"
+    )
+    render_figures(summary, paths.figure_dir)
+    return summary
+
+
+def main() -> int:
+    """CLI entry point."""
+
+    repo_root = Path(__file__).resolve().parents[1]
+    data_root = resolve_data_root(os.environ, Path.home())
+    try:
+        summary = run_audit(data_root, repo_root)
+    except AuditError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    derm = summary["derm7pt"]
+    pad = summary["pad_ufes20"]
+    print(
+        "Data Audit v0.1 complete: "
+        f"Derm7pt={derm['metadata_rows']} rows, "
+        f"PAD-UFES-20={pad['metadata_rows']} rows, "
+        f"Baseline={summary['baseline_readiness']}"
+    )
+    return 0
+
+
 if __name__ == "__main__":
-    raise SystemExit("Audit CLI wiring is not implemented yet")
+    raise SystemExit(main())

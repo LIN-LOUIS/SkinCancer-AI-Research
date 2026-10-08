@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 from pathlib import Path
+import shutil
+import subprocess
+import sys
 
 import pytest
+from PIL import Image
 
 from scripts.audit_datasets import (
     AuditError,
@@ -12,9 +17,13 @@ from scripts.audit_datasets import (
     audit_derm7pt,
     audit_pad_ufes20,
     binary_distribution,
+    build_markdown_report,
     load_mapping,
+    render_figures,
     resolve_data_root,
     validate_official_splits,
+    write_csv_reports,
+    write_json_summary,
 )
 
 
@@ -112,8 +121,10 @@ def _read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
-def _make_derm7pt_fixture(root: Path) -> Path:
-    dataset_dir = root / "derm7pt"
+def _make_derm7pt_fixture(
+    root: Path, relative: Path = Path("derm7pt")
+) -> Path:
+    dataset_dir = root / relative
     base = {
         "seven_point_score": "0",
         "pigment_network": "absent",
@@ -176,8 +187,10 @@ def _make_derm7pt_fixture(root: Path) -> Path:
     return dataset_dir
 
 
-def _make_pad_fixture(root: Path) -> Path:
-    dataset_dir = root / "pad_ufes20"
+def _make_pad_fixture(
+    root: Path, relative: Path = Path("pad_ufes20")
+) -> Path:
+    dataset_dir = root / relative
     base = {
         "smoke": "False",
         "drink": "False",
@@ -244,6 +257,28 @@ def _make_pad_fixture(root: Path) -> Path:
         image.parent.mkdir(parents=True, exist_ok=True)
         image.write_bytes(b"fixture-image")
     return dataset_dir
+
+
+def _make_summary(root: Path) -> dict[str, object]:
+    mapping = load_mapping(
+        Path(__file__).parents[1]
+        / "datasets/mappings/melanoma_binary_v0.1.csv"
+    )
+    return {
+        "schema_version": "0.1",
+        "inputs": {
+            "derm7pt": "raw/derm7pt/release_v0/release_v0",
+            "pad_ufes20": "raw/pad_ufes20",
+        },
+        "derm7pt": audit_derm7pt(_make_derm7pt_fixture(root), mapping),
+        "pad_ufes20": audit_pad_ufes20(_make_pad_fixture(root), mapping),
+        "warnings": [
+            "PAD-UFES-20 has low melanoma prevalence.",
+            "Structured metadata missingness requires protocol-level handling.",
+        ],
+        "unresolved_issues": [],
+        "baseline_readiness": "READY",
+    }
 
 
 def test_resolve_data_root_prefers_nonempty_environment() -> None:
@@ -581,3 +616,148 @@ def test_audit_pad_rejects_unmapped_diagnosis(tmp_path: Path) -> None:
                 / "datasets/mappings/melanoma_binary_v0.1.csv"
             ),
         )
+
+
+def test_write_outputs_creates_all_eight_report_files(tmp_path: Path) -> None:
+    summary = _make_summary(tmp_path / "inputs")
+    report_dir = tmp_path / "reports"
+
+    csv_paths = write_csv_reports(summary, report_dir)
+    json_path = write_json_summary(summary, report_dir / "audit_summary.json")
+    markdown_path = report_dir / "audit_report.md"
+    markdown_path.write_text(
+        build_markdown_report(summary), encoding="utf-8", newline="\n"
+    )
+
+    assert {path.name for path in [*csv_paths, json_path, markdown_path]} == {
+        "dataset_summary.csv",
+        "derm7pt_diagnosis_distribution.csv",
+        "derm7pt_concept_distribution.csv",
+        "derm7pt_missingness.csv",
+        "pad_diagnosis_distribution.csv",
+        "pad_missingness.csv",
+        "audit_summary.json",
+        "audit_report.md",
+    }
+    for path in csv_paths:
+        with path.open(newline="", encoding="utf-8") as handle:
+            assert list(csv.DictReader(handle))
+    parsed = json.loads(json_path.read_text(encoding="utf-8"))
+    assert parsed["schema_version"] == "0.1"
+    assert "# Data Audit v0.1" in markdown_path.read_text(encoding="utf-8")
+
+
+def test_report_outputs_are_deterministic_and_aggregate_only(tmp_path: Path) -> None:
+    summary = _make_summary(tmp_path / "inputs")
+    output_dirs = [tmp_path / "first", tmp_path / "second"]
+
+    for output_dir in output_dirs:
+        write_csv_reports(summary, output_dir)
+        write_json_summary(summary, output_dir / "audit_summary.json")
+        (output_dir / "audit_report.md").write_text(
+            build_markdown_report(summary), encoding="utf-8", newline="\n"
+        )
+
+    first = {
+        path.name: path.read_bytes()
+        for path in output_dirs[0].iterdir()
+        if path.is_file()
+    }
+    second = {
+        path.name: path.read_bytes()
+        for path in output_dirs[1].iterdir()
+        if path.is_file()
+    }
+    assert first == second
+    aggregate_text = b"\n".join(first.values()).decode("utf-8")
+    for identifier in (
+        "PAT_ALPHA",
+        "LESION_ALPHA",
+        "image_1.png",
+        str(tmp_path),
+    ):
+        assert identifier not in aggregate_text
+
+
+def test_render_figures_creates_five_300_dpi_english_pngs(
+    tmp_path: Path,
+) -> None:
+    summary = _make_summary(tmp_path / "inputs")
+    figure_dir = tmp_path / "figures"
+
+    paths = render_figures(summary, figure_dir)
+
+    assert [path.name for path in paths] == [
+        "01_dataset_overview.png",
+        "02_diagnosis_distribution.png",
+        "03_melanoma_prevalence.png",
+        "04_derm7pt_concept_distribution.png",
+        "05_pad_metadata_missingness.png",
+    ]
+    for path in paths:
+        with Image.open(path) as image:
+            assert image.format == "PNG"
+            assert max(image.size) >= 1800
+            dpi = image.info.get("dpi")
+            assert dpi is not None
+            assert dpi[0] == pytest.approx(300, abs=1)
+            assert dpi[1] == pytest.approx(300, abs=1)
+
+
+def test_cli_uses_environment_root_and_creates_required_artifacts(
+    tmp_path: Path,
+) -> None:
+    source_root = Path(__file__).parents[1]
+    repo_root = tmp_path / "repository"
+    script_path = repo_root / "scripts/audit_datasets.py"
+    mapping_path = repo_root / "datasets/mappings/melanoma_binary_v0.1.csv"
+    script_path.parent.mkdir(parents=True)
+    mapping_path.parent.mkdir(parents=True)
+    shutil.copy2(source_root / "scripts/audit_datasets.py", script_path)
+    shutil.copy2(
+        source_root / "datasets/mappings/melanoma_binary_v0.1.csv", mapping_path
+    )
+
+    data_root = tmp_path / "data"
+    _make_derm7pt_fixture(
+        data_root, Path("raw/derm7pt/release_v0/release_v0")
+    )
+    _make_pad_fixture(data_root, Path("raw/pad_ufes20"))
+    env = dict(os.environ)
+    env["SKINCANCER_DATA_ROOT"] = str(data_root)
+    env["MPLCONFIGDIR"] = str(tmp_path / "mpl-cache")
+
+    completed = subprocess.run(
+        [sys.executable, str(script_path)],
+        cwd=repo_root,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    artifacts = {
+        path.name
+        for directory in (
+            repo_root / "reports/data_audit/v0.1",
+            repo_root / "experiments/paper1_concept_dg/figures/data_audit",
+        )
+        for path in directory.iterdir()
+        if path.is_file()
+    }
+    assert artifacts == {
+        "dataset_summary.csv",
+        "derm7pt_diagnosis_distribution.csv",
+        "derm7pt_concept_distribution.csv",
+        "derm7pt_missingness.csv",
+        "pad_diagnosis_distribution.csv",
+        "pad_missingness.csv",
+        "audit_summary.json",
+        "audit_report.md",
+        "01_dataset_overview.png",
+        "02_diagnosis_distribution.png",
+        "03_melanoma_prevalence.png",
+        "04_derm7pt_concept_distribution.png",
+        "05_pad_metadata_missingness.png",
+    }

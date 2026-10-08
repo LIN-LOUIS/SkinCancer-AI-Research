@@ -21,6 +21,10 @@ wandb/
 experiments/*/logs/
 experiments/*/results/
 experiments/*/figures/
+!experiments/paper1_concept_dg/figures/
+experiments/paper1_concept_dg/figures/*
+!experiments/paper1_concept_dg/figures/data_audit/
+!experiments/paper1_concept_dg/figures/data_audit/*.png
 
 # Python
 __pycache__/
