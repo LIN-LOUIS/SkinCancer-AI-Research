@@ -214,3 +214,9 @@ def patient_cluster_bootstrap(
         "rejected_one_class": rejected,
         "seed": seed,
     }
+
+
+def percentile_interval(values: Sequence[float]) -> dict[str, float]:
+    if not values:
+        raise ValueError("interval values must not be empty")
+    return {"lower": _percentile(values, 0.025), "upper": _percentile(values, 0.975)}
