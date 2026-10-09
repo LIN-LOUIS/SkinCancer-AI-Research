@@ -1,0 +1,73 @@
+version: "0.1"
+status: frozen
+paper: paper1
+base_commit: 0bd3624aea3c8d5401622885ca58fe7e2fc34c07
+seed_set: [42, 43, 44]
+smoke_seed: 42
+
+target:
+  positive: melanoma
+  negative: non-melanoma
+  positive_value: 1
+  negative_value: 0
+
+datasets:
+  Derm7pt:
+    case_index: zero_based_metadata_row_index
+    official_splits: [train, valid, test]
+    domains:
+      A: derm
+      B: clinic
+  PAD-UFES-20:
+    domain: C
+    role: external_evaluation_only
+    split: all_eligible_images
+    identity_keys:
+      patient_key: patient_id
+      lesion_key: [patient_id, lesion_id]
+      image_key: img_id
+
+experiments:
+  E1: {train: A_train, validation: A_val, test: A_test}
+  E2: {train: A_train, validation: A_val, test: B_test}
+  E3: {train: A_train, validation: A_val, test: C_all}
+  E4: {train: B_train, validation: B_val, test: B_test}
+  E5: {train: B_train, validation: B_val, test: C_all}
+
+selection:
+  checkpoint:
+    data: source_validation_only
+    metric: auroc
+    tie_break: earliest_epoch
+  threshold:
+    data: source_validation_only
+    method: youden_j
+    tie_breaks: [higher_specificity, higher_threshold]
+  target_labels_for_selection: forbidden
+
+metrics:
+  primary: [auroc, average_precision, sensitivity, specificity]
+  secondary: [balanced_accuracy, f1, brier_score, ece, confusion_matrix]
+  ece_bins: 10
+  ece_binning: "[0.0,0.1),...,[0.9,1.0]"
+
+bootstrap:
+  dataset: PAD-UFES-20
+  unit: patient
+  replicates: 2000
+  reject_one_class_replicates: true
+
+privacy:
+  local_only: [manifests, patient_ids, lesion_ids, image_paths, predictions, weights]
+  public: aggregate_only
+
+phases:
+  P0:
+    full_training: forbidden
+    acceptance: pytest_and_real_data_ready
+  P1:
+    prerequisite: P0_READY
+    model: resnet50
+    weights: imagenet_pretrained_with_recorded_provenance
+    batches: approximately_20_to_30_per_source
+    full_training: forbidden

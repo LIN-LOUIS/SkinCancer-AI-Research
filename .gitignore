@@ -1,6 +1,10 @@
 # Datasets and sensitive data
 data/
 data_local/
+**/manifests/
+**/predictions/
+!src/data/
+!src/data/**
 datasets/raw/
 datasets/interim/
 datasets/processed/
@@ -37,3 +41,6 @@ __pycache__/
 # IDE
 .idea/
 .vscode/
+
+# Office lock files
+.~*

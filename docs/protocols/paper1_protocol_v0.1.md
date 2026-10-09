@@ -23,7 +23,7 @@ Two **trained** source configurations, A and B, yield five evaluations. B_test a
 
 - Raw data root: `${SKINCANCER_DATA_ROOT:-$HOME/Datasets/SkinCancer}`; `raw/` immutable and outside Git.
 - Derm7pt: 1,011 metadata cases; official train/validation/test index sizes 413/203/395; source modality A=`derm`, B=`clinic`; 2,022 image references but only 2,013 unique referenced files. Nine duplicate-reference excess is **not** missing images; analyze exact duplicates and source/test leakage before READY.
-- PAD-UFES-20: 2,298 rows/images; 1,373 patients; 1,641 lesions; 52 melanoma images; `patient_id`/`lesion_id`/`img_id` retained in local/private manifest only. All 2,298 images constitute C evaluation, provided they pass cohort/label integrity checks.
+- PAD-UFES-20: 2,298 rows/images; 1,373 patients; 1,641 unique raw `lesion_id` values; 1,891 patient-scoped lesion keys; 52 melanoma images. Identity is frozen as `patient_key=patient_id`, `lesion_key=(patient_id, lesion_id)`, and `image_key=img_id`; identifiers remain in the local/private manifest only. All 2,298 images constitute C evaluation, provided they pass cohort/label integrity checks.
 - Melanoma `1`; all other mapped diagnoses `0`. PAD BCC and SCC are `0` for this task; do not claim they are benign.
 - Audited labels/maps are authoritative; any unknown/new label => FAIL CLOSED.
 - Never assume Derm7pt case equals distinct patient; do not describe case-level CI as patient-level CI.
@@ -35,7 +35,7 @@ Local/private manifests are versioned by schema, not uploaded row-by-row. Requir
 - PAD: `image_id`, `patient_id`, `lesion_id`, `image_path`, `target`, `original_diagnosis`; patient/lesion grouping must be validated.
 - Use official Derm7pt split unchanged unless data leakage blocks it. All A/B views of any case must share a split. Validate split index coverage/disjointness and every image ref against files.
 - Build a graph of cases connected by a repeated image-file reference (and optionally by confirmed same-content digest). If any such component spans official splits, mark Protocol BLOCKED, report aggregate conflict counts **privately**, and request architectural adjudication; do not silently reassign cases or drop examples.
-- If PAD identifiers are missing, contradictory, or cross-patient for an otherwise identical lesion ID, FLAG/BLOCK based on severity; do not infer identities. Check consistency of diagnosis within a single lesion. Never use a random image-level split for C.
+- PAD raw `lesion_id` values may be reused across patients and do not by themselves imply shared identity. Block on missing identity fields, duplicate or contradictory `img_id` mapping, or inconsistent original diagnosis/binary target within one `(patient_id, lesion_id)` lesion key. Do not infer, delete, relabel, or vote on conflicts. Never use a random image-level split for C.
 - Only aggregate figures/statistics in public Git. The manifest with patient IDs, image filenames or per-sample predictions belongs to an ignored local directory.
 
 ## 4. Model selection, thresholds, and preprocessing
