@@ -343,9 +343,20 @@ class P2Orchestrator:
     def publish(self) -> dict[str, Any]:
         self._require_stage("evaluate")
         if self.report_root.exists() or self.figure_root.exists():
-            if self.resume and (self.report_root / "metrics.json").is_file():
-                return {"state": "PASS", "resumed": True}
-            raise RuntimeError("PUBLIC_OUTPUT_ALREADY_EXISTS")
+            if not (self.resume and (self.report_root / "metrics.json").is_file()):
+                raise RuntimeError("PUBLIC_OUTPUT_ALREADY_EXISTS")
+            seal = load_data_seal(self.private_root)
+            locks = self._load_locks()
+            bundle = self._load_private_bundle(seal, locks)
+            histories = {
+                source: json.loads((self.run_root / "formal" / f"resnet50_{source}_seed42/history.json").read_text(encoding="utf-8"))["history"]
+                for source in ("A", "B")
+            }
+            if not (self.report_root / "acceptance_report.md").is_file():
+                self._write_acceptance(bundle, histories, locks, {})
+            result = {"state": "PASS", "resumed": True}
+            self._write_stage_marker("publish", result)
+            return result
         seal = load_data_seal(self.private_root)
         locks = self._load_locks()
         bundle = self._load_private_bundle(seal, locks)
@@ -382,7 +393,7 @@ class P2Orchestrator:
             f"- Git SHA: `{commit}`", f"- config SHA256: `{self.config.sha256}`",
             f"- seed: `{self.config.seed}`", f"- Python: `{sys.version.split()[0]}`",
             f"- PyTorch: `{torch.__version__}`", f"- CUDA runtime: `{torch.version.cuda}`",
-            f"- GPU: `{torch.cuda.get_device_name(0)}`",
+            f"- GPU: `{preflight['device']}`",
             f"- 224×224 AMP 门禁峰值显存: `{preflight['peak_gpu_memory_bytes']}` bytes",
             f"- A/B 单 epoch 预检总耗时: `{precheck['elapsed_seconds']:.3f}` seconds", "",
             "## Source selection", "",

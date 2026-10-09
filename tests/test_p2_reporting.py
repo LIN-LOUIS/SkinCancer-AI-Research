@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
 
 from PIL import Image
 import pytest
@@ -12,6 +13,15 @@ from src.p2.reporting import (
     patient_cluster_intervals,
     publish_aggregate_reports,
 )
+
+
+def test_public_p2_png_directory_is_not_git_ignored() -> None:
+    repo = Path(__file__).resolve().parents[1]
+    candidate = repo / "experiments/paper1_concept_dg/figures/p2_seed42/training_curves.png"
+    completed = subprocess.run(
+        ["git", "check-ignore", "-q", str(candidate)], cwd=repo, check=False
+    )
+    assert completed.returncode == 1
 
 
 def _pad_records(reverse: bool = False) -> list[dict[str, object]]:
@@ -131,6 +141,7 @@ def test_publication_is_allowlisted_and_emits_required_300dpi_figures(tmp_path: 
         assert secret not in public_text
     payload = json.loads((tmp_path / "reports/metrics.json").read_text(encoding="utf-8"))
     assert set(payload["experiments"]) == {"E1", "E2", "E3", "E4", "E5"}
+    assert b"\r" not in (tmp_path / "reports/metrics.csv").read_bytes()
     expected = {
         "training_curves.png", "roc_pr_curves.png", "confusion_matrices.png",
         "e2_paired_errors.png", "pad_cluster_ci.png", "calibration.png",

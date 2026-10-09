@@ -29,6 +29,8 @@ experiments/*/figures/
 experiments/paper1_concept_dg/figures/*
 !experiments/paper1_concept_dg/figures/data_audit/
 !experiments/paper1_concept_dg/figures/data_audit/*.png
+!experiments/paper1_concept_dg/figures/p2_seed42/
+!experiments/paper1_concept_dg/figures/p2_seed42/*.png
 
 # Python
 __pycache__/

@@ -311,7 +311,7 @@ def publish_aggregate_reports(
     (report_stage / "metrics.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     with (report_stage / "metrics.csv").open("w", newline="", encoding="utf-8") as handle:
         fields = ["experiment", *[field for field in PUBLIC_METRIC_FIELDS if field not in {"confusion_matrix", "ece_binning"}], "tn", "fp", "fn", "tp"]
-        writer = csv.DictWriter(handle, fieldnames=fields); writer.writeheader()
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n"); writer.writeheader()
         for experiment, metrics in payload["experiments"].items():
             row = {key: metrics[key] for key in fields if key in metrics}
             row["experiment"] = experiment; row.update(metrics["confusion_matrix"]); writer.writerow(row)

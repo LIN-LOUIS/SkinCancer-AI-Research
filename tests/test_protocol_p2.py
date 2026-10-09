@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -60,3 +61,42 @@ def test_stage_marker_is_atomic_and_contains_no_private_paths(tmp_path: Path) ->
     payload = json.loads((tmp_path / "prepare.json").read_text(encoding="utf-8"))
     assert payload == {"rows": 123, "stage": "prepare", "state": "PASS"}
     assert not (tmp_path / "prepare.json.tmp").exists()
+
+
+def test_acceptance_uses_recorded_gpu_without_live_cuda_probe(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import torch
+
+    orchestrator = object.__new__(P2Orchestrator)
+    orchestrator.repo = REPO
+    orchestrator.report_root = tmp_path / "reports"
+    orchestrator.report_root.mkdir()
+    orchestrator.stage_root = tmp_path / "stages"
+    orchestrator.stage_root.mkdir()
+    orchestrator.config = SimpleNamespace(sha256="config", seed=42, bootstrap_replicates=2000)
+    (orchestrator.stage_root / "gpu-preflight.json").write_text(
+        json.dumps({"device": "RECORDED RTX 3060", "peak_gpu_memory_bytes": 123}),
+        encoding="utf-8",
+    )
+    (orchestrator.stage_root / "precheck.json").write_text(
+        json.dumps({"elapsed_seconds": 1.5}), encoding="utf-8"
+    )
+    bundle = SimpleNamespace(predictions={name: [1, 2] for name in ("E1", "E2", "E3", "E4", "E5")})
+    histories = {
+        source: [{"peak_gpu_memory_bytes": 456, "elapsed_seconds": 2.0}]
+        for source in ("A", "B")
+    }
+    locks = {
+        source: {
+            "selected_epoch": 0, "source_val_auroc": 0.7, "threshold": 0.5,
+            "threshold_origin": "source_val_youden_j",
+        }
+        for source in ("A", "B")
+    }
+    monkeypatch.setattr(torch.cuda, "get_device_name", lambda *_: (_ for _ in ()).throw(RuntimeError("CUDA hidden")))
+
+    orchestrator._write_acceptance(bundle, histories, locks, {})
+
+    report = (orchestrator.report_root / "acceptance_report.md").read_text(encoding="utf-8")
+    assert "RECORDED RTX 3060" in report

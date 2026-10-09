@@ -1,0 +1,242 @@
+{
+  "e2_paired": {
+    "counts": {
+      "A_correct_B_wrong": 64,
+      "A_wrong_B_correct": 59,
+      "both_correct": 235,
+      "both_wrong": 37
+    },
+    "mean_score_delta_A_minus_B": 0.14583179135865804,
+    "n_pairs": 395
+  },
+  "experiments": {
+    "E1": {
+      "auroc": 0.812504209604634,
+      "average_precision": 0.6193480496624011,
+      "balanced_accuracy": 0.7229911766686873,
+      "brier_score": 0.19524469405377307,
+      "confusion_matrix": {
+        "fn": 35,
+        "fp": 61,
+        "tn": 233,
+        "tp": 66
+      },
+      "ece": 0.21824506928649134,
+      "ece_binning": "[0.0,0.1),...,[0.9,1.0]",
+      "ece_bins": 10,
+      "f1": 0.5789473684210525,
+      "n_neg": 294,
+      "n_pos": 101,
+      "prevalence": 0.25569620253164554,
+      "sensitivity": 0.6534653465346535,
+      "specificity": 0.7925170068027211,
+      "threshold": 0.57666015625
+    },
+    "E2": {
+      "auroc": 0.5493197278911565,
+      "average_precision": 0.33400477098613063,
+      "balanced_accuracy": 0.5227487034417727,
+      "brier_score": 0.20566746959970422,
+      "confusion_matrix": {
+        "fn": 94,
+        "fp": 7,
+        "tn": 287,
+        "tp": 7
+      },
+      "ece": 0.12904353081425535,
+      "ece_binning": "[0.0,0.1),...,[0.9,1.0]",
+      "ece_bins": 10,
+      "f1": 0.1217391304347826,
+      "n_neg": 294,
+      "n_pos": 101,
+      "prevalence": 0.25569620253164554,
+      "sensitivity": 0.06930693069306931,
+      "specificity": 0.9761904761904762,
+      "threshold": 0.57666015625
+    },
+    "E3": {
+      "auroc": 0.404582505651072,
+      "average_precision": 0.02688654128367858,
+      "balanced_accuracy": 0.5143246112747448,
+      "brier_score": 0.1927930380695601,
+      "confusion_matrix": {
+        "fn": 45,
+        "fp": 238,
+        "tn": 2008,
+        "tp": 7
+      },
+      "ece": 0.38965404500538003,
+      "ece_binning": "[0.0,0.1),...,[0.9,1.0]",
+      "ece_bins": 10,
+      "f1": 0.04713804713804713,
+      "n_neg": 2246,
+      "n_pos": 52,
+      "prevalence": 0.022628372497824196,
+      "sensitivity": 0.1346153846153846,
+      "specificity": 0.8940338379341051,
+      "threshold": 0.57666015625
+    },
+    "E4": {
+      "auroc": 0.7203980602141847,
+      "average_precision": 0.4997252351706906,
+      "balanced_accuracy": 0.6590051862329089,
+      "brier_score": 0.29806952128741604,
+      "confusion_matrix": {
+        "fn": 28,
+        "fp": 119,
+        "tn": 175,
+        "tp": 73
+      },
+      "ece": 0.3167656657061999,
+      "ece_binning": "[0.0,0.1),...,[0.9,1.0]",
+      "ece_bins": 10,
+      "f1": 0.49829351535836175,
+      "n_neg": 294,
+      "n_pos": 101,
+      "prevalence": 0.25569620253164554,
+      "sensitivity": 0.7227722772277227,
+      "specificity": 0.5952380952380952,
+      "threshold": 0.6025390625
+    },
+    "E5": {
+      "auroc": 0.5940646619631481,
+      "average_precision": 0.039935100228587476,
+      "balanced_accuracy": 0.5878056716213439,
+      "brier_score": 0.2707436629625987,
+      "confusion_matrix": {
+        "fn": 29,
+        "fp": 599,
+        "tn": 1647,
+        "tp": 23
+      },
+      "ece": 0.4458066495840606,
+      "ece_binning": "[0.0,0.1),...,[0.9,1.0]",
+      "ece_bins": 10,
+      "f1": 0.06824925816023737,
+      "n_neg": 2246,
+      "n_pos": 52,
+      "prevalence": 0.022628372497824196,
+      "sensitivity": 0.4423076923076923,
+      "specificity": 0.7333036509349955,
+      "threshold": 0.6025390625
+    }
+  },
+  "pad_paired_difference": {
+    "difference": "E3_minus_E5",
+    "intervals": {
+      "auroc_difference_E3_minus_E5": {
+        "lower": -0.31885872301887924,
+        "upper": -0.060885512603235895
+      },
+      "average_precision_difference_E3_minus_E5": {
+        "lower": -0.04266879085677576,
+        "upper": 0.014405959842431567
+      },
+      "balanced_accuracy_difference_E3_minus_E5": {
+        "lower": -0.16492328548610347,
+        "upper": 0.012317573392162632
+      },
+      "f1_difference_E3_minus_E5": {
+        "lower": -0.057544201231056163,
+        "upper": 0.016553039697655193
+      },
+      "sensitivity_difference_E3_minus_E5": {
+        "lower": -0.4902139037433155,
+        "upper": -0.13333333333333336
+      },
+      "specificity_difference_E3_minus_E5": {
+        "lower": 0.13709952308668263,
+        "upper": 0.18362250323723114
+      }
+    },
+    "rejected_one_class": 0,
+    "requested_replicates": 2000,
+    "seed": 42,
+    "unit": "paired_patient_cluster",
+    "valid_replicates": 2000
+  },
+  "pad_patient_cluster_intervals": {
+    "E3": {
+      "intervals": {
+        "auroc": {
+          "lower": 0.3089504018911563,
+          "upper": 0.499603866094699
+        },
+        "average_precision": {
+          "lower": 0.015085630937131497,
+          "upper": 0.061392260494909874
+        },
+        "balanced_accuracy": {
+          "lower": 0.47354976636540946,
+          "upper": 0.5566553054549739
+        },
+        "f1": {
+          "lower": 0.018516313407954278,
+          "upper": 0.082023248779223
+        },
+        "sensitivity": {
+          "lower": 0.05404198841698842,
+          "upper": 0.21952439024390236
+        },
+        "specificity": {
+          "lower": 0.8799456880428894,
+          "upper": 0.9073316347017993
+        }
+      },
+      "rejected_one_class": 0,
+      "requested_replicates": 2000,
+      "seed": 42,
+      "unit": "patient_cluster",
+      "valid_replicates": 2000
+    },
+    "E5": {
+      "intervals": {
+        "auroc": {
+          "lower": 0.49262973424598305,
+          "upper": 0.6921931912879391
+        },
+        "average_precision": {
+          "lower": 0.021901755720224337,
+          "upper": 0.07626953471466656
+        },
+        "balanced_accuracy": {
+          "lower": 0.5132171056716174,
+          "upper": 0.6704205395332098
+        },
+        "f1": {
+          "lower": 0.038399087274990945,
+          "upper": 0.10219185467816852
+        },
+        "sensitivity": {
+          "lower": 0.29408177905308464,
+          "upper": 0.6071428571428571
+        },
+        "specificity": {
+          "lower": 0.71389979380205,
+          "upper": 0.7536192517379675
+        }
+      },
+      "rejected_one_class": 0,
+      "requested_replicates": 2000,
+      "seed": 42,
+      "unit": "patient_cluster",
+      "valid_replicates": 2000
+    }
+  },
+  "schema_version": "p2_aggregate_report_v1",
+  "score_interpretation": "uncalibrated_probability_score",
+  "source_selection": {
+    "A": {
+      "selected_epoch": 3,
+      "source_val_auroc": 0.804317709535904,
+      "threshold": 0.57666015625,
+      "threshold_origin": "source_val_youden_j"
+    },
+    "B": {
+      "selected_epoch": 7,
+      "source_val_auroc": 0.7809974601708612,
+      "threshold": 0.6025390625,
+      "threshold_origin": "source_val_youden_j"
+    }
+  }
+}
