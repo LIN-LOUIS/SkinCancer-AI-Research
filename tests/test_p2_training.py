@@ -15,6 +15,13 @@ from src.p2.training import (
     update_early_stopping,
     validate_resume_payload,
 )
+from src.p2.torch_runtime import configure_determinism
+
+
+def test_cuda_determinism_sets_cublas_workspace_before_training(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("CUBLAS_WORKSPACE_CONFIG", raising=False)
+    configure_determinism(42)
+    assert __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] == ":4096:8"
 
 
 def test_pos_weight_uses_only_supplied_source_train_records() -> None:

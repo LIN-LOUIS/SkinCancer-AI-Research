@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import random
+import os
 from pathlib import Path
 from typing import Any, Sequence
 
 
 def configure_determinism(seed: int) -> dict[str, Any]:
+    os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     import torch
 
     random.seed(seed)
